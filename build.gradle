@@ -28,6 +28,8 @@ sourceSets.main.resources {
 }
 
 repositories {
+    mavenCentral()
+    maven { url = 'https://maven.blamejared.com'; content { includeGroup 'mezz.jei' } }
     maven {
         name = 'Modrinth'
         url = 'https://api.modrinth.com/maven'
@@ -68,6 +70,11 @@ neoForge {
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
+        clientSmoke {
+            client()
+            gameDirectory = project.file('build/client-smoke')
+            systemProperty 'tacz_bsb.clientSmoke', 'true'
+        }
         server {
             server()
             programArgument '--nogui'
@@ -78,6 +85,7 @@ neoForge {
         // The gametest system is also enabled by default for other run configs under the /test command.
         gameTestServer {
             type = "gameTestServer"
+            gameDirectory = project.file('build/gametest-run')
             systemProperty 'neoforge.enabledGameTestNamespaces', project.mod_id
         }
 
@@ -117,6 +125,12 @@ neoForge {
 }
 
 dependencies {
+    compileOnly 'mezz.jei:jei-1.21.1-common-api:19.21.0.247'
+    compileOnly 'mezz.jei:jei-1.21.1-neoforge-api:19.21.0.247'
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
     implementation "maven.modrinth:tacz-1.21.1:${tacz_version}"
     implementation "curse.maven:create-timeless-and-classics-zero-tacz-port-1542760:${tacz_c_file_id}"
     // The full Create release includes Registrate, Flywheel and Ponder.
@@ -181,6 +195,23 @@ idea {
 
 tasks.named('jar', Jar).configure {
     includeEmptyDirs = false
+    exclude 'com/sange/tacz_bsb/gametest/**'
+    exclude 'data/tacz_bsb/structure/empty.nbt'
     from('LICENSE')
     from('TEMPLATE_LICENSE.txt')
+}
+
+tasks.named('test', Test).configure {
+    useJUnitPlatform()
+}
+
+// Rebuild an isolated test world before the optional automated client smoke run.
+var prepareClientSmokeWorld = tasks.register('prepareClientSmokeWorld', Copy) {
+    dependsOn 'runGameTestServer'
+    from 'build/gametest-run/world'
+    into 'build/client-smoke/saves/BSBTest'
+    exclude 'session.lock'
+}
+tasks.named('runClientSmoke').configure {
+    dependsOn prepareClientSmokeWorld
 }
