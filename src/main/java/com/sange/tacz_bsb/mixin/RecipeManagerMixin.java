@@ -20,7 +20,7 @@ public abstract class RecipeManagerMixin {
                              ProfilerFiller profiler, Operation<Void> original) {
         Map<ResourceLocation, JsonElement> result = new HashMap<>(recipes);
         result.replaceAll((id, json) -> BsbConfig.value(BsbConfig.RECIPES).contains(id.getNamespace())
-                ? RecipeRewriter.rewrite(json, BsbConfig::enabled) : json);
+                ? RecipeRewriter.rewrite(json, ammoId -> BsbConfig.enabled(ammoId, 2)) : json);
         original.call(result, resources, profiler);
     }
 }

@@ -1,0 +1,35 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_12g"
+  },
+  "loops": 2,
+  "results": [
+    {
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:12g"
+        }
+      },
+      "id": "tacz_bsb:precise_ammo"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_12g"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_12g"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_12g"
+  }
+}

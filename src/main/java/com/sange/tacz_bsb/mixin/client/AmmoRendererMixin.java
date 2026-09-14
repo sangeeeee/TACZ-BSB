@@ -21,7 +21,7 @@ public abstract class AmmoRendererMixin {
     private void bsb$scope(ItemStack stack, ItemDisplayContext context, PoseStack poses,
             MultiBufferSource buffers, int light, int overlay, Operation<Void> original) {
         boolean previous = AmmoGlint.ACTIVE.get();
-        AmmoGlint.ACTIVE.set(AmmoTransactions.precise(stack));
+        AmmoGlint.ACTIVE.set(AmmoTransactions.tier(stack) > 1);
         try { original.call(stack, context, poses, buffers, light, overlay); }
         finally { AmmoGlint.ACTIVE.set(previous); }
     }

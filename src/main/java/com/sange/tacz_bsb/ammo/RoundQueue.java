@@ -3,47 +3,50 @@ package com.sange.tacz_bsb.ammo;
 import java.util.ArrayDeque;
 import java.util.List;
 
-/** Run-length encoded rounds in firing order. Positive runs are precise. */
+/** Runs in firing order: upper bits store count, low two bits store the ammunition tier. */
 public final class RoundQueue {
     private final ArrayDeque<Integer> runs = new ArrayDeque<>();
     private int size;
-
+    public static int type(int run) { return run & 3; }
+    public static int count(int run) { return run >>> 2; }
     public int size() { return size; }
     public boolean isEmpty() { return size == 0; }
-    public boolean peek() {
+    public int peek() {
         if (isEmpty()) throw new IllegalStateException("Empty ammunition queue");
-        return runs.getFirst() > 0;
+        return type(runs.getFirst());
     }
-    public void addLast(boolean precise, int count) {
-        if (count < 0 || count > 1_000_000 - size) throw new IllegalArgumentException("Invalid ammunition count");
+    public void addLast(int tier, int count) {
+        if (tier < 1 || tier > 3 || count < 0 || count > 1_000_000 - size)
+            throw new IllegalArgumentException("Invalid ammunition tier or count");
         if (count == 0) return;
-        int run = precise ? count : -count;
-        if (!runs.isEmpty() && (runs.getLast() > 0) == precise) run += runs.removeLast();
-        runs.addLast(run);
+        int merged = count;
+        if (!runs.isEmpty() && type(runs.getLast()) == tier) merged += count(runs.removeLast());
+        runs.addLast((merged << 2) | tier);
         size += count;
     }
-    public boolean removeFirst() {
-        boolean precise = peek();
+    public int removeFirst() {
+        int tier = peek();
         int run = runs.removeFirst();
-        if (Math.abs(run) > 1) runs.addFirst(run + (precise ? -1 : 1));
+        if (count(run) > 1) runs.addFirst(run - 4);
         size--;
-        return precise;
+        return tier;
     }
     public RoundQueue take(int count) {
         if (count < 0 || count > size) throw new IllegalArgumentException("Not enough rounds");
         RoundQueue result = new RoundQueue();
         while (count > 0) {
             int run = runs.removeFirst();
-            int moved = Math.min(count, Math.abs(run));
-            result.addLast(run > 0, moved);
-            if (moved < Math.abs(run)) runs.addFirst(run > 0 ? run - moved : run + moved);
+            int moved = Math.min(count, count(run));
+            result.addLast(type(run), moved);
+            if (moved < count(run)) runs.addFirst(run - (moved << 2));
             count -= moved;
             size -= moved;
         }
         return result;
     }
     public void append(RoundQueue other) {
-        for (int run : other.runs) addLast(run > 0, Math.abs(run));
+        if (other == this) throw new IllegalArgumentException("Cannot append queue to itself");
+        for (int run : other.runs) addLast(type(run), count(run));
     }
     public void prepend(RoundQueue other) {
         RoundQueue merged = new RoundQueue();
@@ -54,14 +57,15 @@ public final class RoundQueue {
         size = merged.size;
     }
     public List<Integer> runs() { return List.copyOf(runs); }
-    public int preciseCount() { return runs.stream().filter(n -> n > 0).mapToInt(Integer::intValue).sum(); }
+    public int countTier(int tier) {
+        return runs.stream().filter(n -> type(n) == tier).mapToInt(RoundQueue::count).sum();
+    }
     public static RoundQueue fromRuns(List<Integer> encoded) {
         RoundQueue result = new RoundQueue();
         for (int n : encoded) {
-            if (n == 0 || n == Integer.MIN_VALUE) throw new IllegalArgumentException("Invalid run");
-            result.addLast(n > 0, Math.abs(n));
+            if (n <= 0 || count(n) == 0) throw new IllegalArgumentException("Invalid ammunition run");
+            result.addLast(type(n), count(n));
         }
         return result;
     }
 }
-

@@ -55,13 +55,13 @@ public abstract class GunScriptMixin {
     private void bsb$initializeBullet(EntityKineticBullet bullet, float multiplier, Operation<Void> original,
                                       @Share("bsb_round") LocalIntRef round) {
         var api = bsb$api();
-        boolean precise = AmmoTransactions.active(api)
-                && (round.get() != 0 ? round.get() : AmmoTransactions.peek(api)) == 2;
+        int tier = AmmoTransactions.active(api)
+                ? (round.get() != 0 ? round.get() : AmmoTransactions.peek(api)) : 1;
         String id = api.getGunIndex().getGunData().getAmmoId().toString();
-        original.call(bullet, precise ? multiplier * BsbConfig.multiplier(id, false) : multiplier);
-        if (precise) {
+        original.call(bullet, multiplier * BsbConfig.multiplier(id, tier, false));
+        if (tier > 1) {
             BulletAccessor access = (BulletAccessor) bullet;
-            access.bsb$setExplosionDamage(access.bsb$getExplosionDamage() * BsbConfig.multiplier(id, true));
+            access.bsb$setExplosionDamage(access.bsb$getExplosionDamage() * BsbConfig.multiplier(id, tier, true));
         }
     }
 }

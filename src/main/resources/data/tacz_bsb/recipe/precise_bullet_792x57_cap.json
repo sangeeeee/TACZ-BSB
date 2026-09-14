@@ -1,0 +1,51 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_792x57"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:precise_ammo",
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:792x57"
+        }
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_792x57"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_792x57"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_792x57"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_792x57"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_792x57"
+  }
+}

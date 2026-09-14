@@ -11,24 +11,31 @@ import net.neoforged.api.distmarker.OnlyIn;
 import java.util.List;
 import java.util.Locale;
 
-public final class PreciseAmmoItem extends AmmoItem {
-    public static final int NAME_COLOR = 0xFF8800;
+public final class TieredAmmoItem extends AmmoItem {
+    private final int tier;
+    public TieredAmmoItem(int tier) {
+        if (tier != 2 && tier != 3) throw new IllegalArgumentException("Invalid enhanced ammo tier");
+        this.tier = tier;
+    }
+    public int tier() { return tier; }
+    public static int color(int tier) { return tier == 3 ? 0xAA55FF : tier == 2 ? 0xFF8800 : 0xDDDDDD; }
+    public static String tierKey(int tier) { return tier == 3 ? "precise" : "improved"; }
     @Override public boolean isFoil(ItemStack stack) { return true; }
     @Override @OnlyIn(Dist.CLIENT)
     public Component getName(ItemStack stack) {
-        // TaCZ translations embed section-sign colors; remove them so the full name stays orange.
+        // Strip embedded TaCZ colors so the name uses the ammunition tier color.
         String baseName = ChatFormatting.stripFormatting(super.getName(stack).getString());
-        return Component.translatable("item.tacz_bsb.precise_ammo", baseName)
-                .withStyle(style -> style.withColor(NAME_COLOR));
+        return Component.translatable("item.tacz_bsb." + tierKey(tier) + "_ammo", baseName)
+                .withStyle(style -> style.withColor(color(tier)));
     }
     @Override @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> text, TooltipFlag flags) {
         String id = getAmmoId(stack).toString();
+        text.add(Component.translatable("tooltip.tacz_bsb." + tierKey(tier)).withStyle(style -> style.withColor(color(tier))));
         text.add(Component.translatable("tooltip.tacz_bsb.damage",
-                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, false)),
-                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, true))).withStyle(style -> style.withColor(NAME_COLOR)));
+                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, tier, false)),
+                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, tier, true))).withStyle(style -> style.withColor(color(tier))));
         text.add(Component.translatable("tooltip.tacz_bsb.production").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, text, flags);
     }
 }
-

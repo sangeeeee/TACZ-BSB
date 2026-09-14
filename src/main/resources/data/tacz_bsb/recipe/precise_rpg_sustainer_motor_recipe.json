@@ -1,0 +1,27 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "key": {
+    "G": {
+      "item": "tacz_bsb:high_gunpowder_cylinder"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    },
+    "I": {
+      "item": "minecraft:iron_ingot"
+    }
+  },
+  "pattern": [
+    " GGG ",
+    "SGGRI",
+    " GGG "
+  ],
+  "result": {
+    "count": 3,
+    "id": "tacz_bsb:precise_rpg_sustainer_motor"
+  }
+}

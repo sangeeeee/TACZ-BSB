@@ -1,0 +1,97 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_4570"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:high_casefull_4570"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_4570"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_4570"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_4570"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_4570"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_4570"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_4570"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_high_casefull_4570"
+  }
+}

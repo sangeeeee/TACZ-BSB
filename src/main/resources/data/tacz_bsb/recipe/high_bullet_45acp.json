@@ -1,0 +1,49 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_45acp"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:high_casefull_45acp"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_45acp"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_grains"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_45acp"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_45acp"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_45acp"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_high_casefull_45acp"
+  }
+}

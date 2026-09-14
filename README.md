@@ -1,6 +1,6 @@
 # TACZ: Better Streamline Bullet
 
-Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 流水线生产改良弹药；TaCZ 工作台继续生产普通弹药。
+Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良弹药；新增高能材料流水线生产精密弹药；TaCZ 工作台生产普通弹药。
 
 - 模组 ID：`tacz_bsb`
 - 版本：`1.0.0-beta`（NeoForge，发行文件包含 `neoforge` 标识）
@@ -8,15 +8,42 @@ Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 流水线生产改良弹
 - 许可证：[MIT](LICENSE)
 - Java 包：`com.sange.tacz_bsb`
 
-## 已实现的功能
+## 弹药与生产
 
-- 自动替换 Create: TaCZ 的 24 条弹药流水线成品输出，保留配方 ID、产量、概率、循环次数和中间步骤。不会另加一份并存的普通弹药流水线配方。
-- 新物品 `tacz_bsb:precise_ammo` 使用 TaCZ 的 `AmmoId` 区分口径。默认覆盖全部 24 种弹药，包括榴弹、火箭弹；标准枪包新增弹药也自动获得对应变种。
-- 名称自动显示“改良的原弹药名称”，复用原贴图/模型并叠加附魔光效，提供伤害说明，全部加入 TaCZ 原弹药创造栏。提供可选 JEI 子类型识别。
-- 同口径普通弹和改良弹可混装。枪械物品分别保存弹匣的逐发顺序、弹膛类型，以及装填过程中尚未落位的弹药。状态随物品存档和网络同步。
-- 改良弹的直接命中和爆炸伤害默认分别乘 **1.5**，可以独立配置；保留原有距离衰减、爆炸范围和击退规则。
-- TaCZ 右下角 HUD 显示当前弹药类型；空枪与手动枪机尚未上膛时有对应提示。
-- 支持原版换弹、逐发装填、拉栓、取消换弹、背包直读、虚拟备弹，以及弹药盒的品质保持。
+| 弹药 | 物品 ID | 名称颜色 | 默认直接命中 / 爆炸伤害 | 生产方式 |
+| --- | --- | --- | --- | --- |
+| 普通 | `tacz:ammo` | TaCZ 原色 | 1 / 1 | TaCZ 工作台 |
+| 改良 | `tacz_bsb:improved_ammo` | 橙色 | 1.5 / 1.5 | 原 Create: TaCZ 流水线 |
+| 精密 | `tacz_bsb:precise_ammo` | 紫色 | 2 / 2 | 高能材料与硬化弹头流水线 |
+
+- 每档物品通过 TaCZ 的 `AmmoId` 区分口径，默认包含全部 24 种弹药及枪包新增的有效弹药。两档强化弹药均自动使用原弹药名称、模型和原版附魔光效，加入 TaCZ 弹药创造栏，并提供 JEI 子类型识别。
+- 原 Create: TaCZ 的 24 条最终装配配方替换为改良弹，保留原配方 ID、产量、概率和工序；工作台配方保留。
+- 新增 **85 个材料及加工中物品、64 条配方**，完成全部 24 种精密弹药的生产链。新材料全部加入 **Create: TaCZ 创造栏**，复用对应原材料模型并显示原版附魔光效。
+- 普通、改良、精密三档可混装；分别记录弹匣顺序、弹膛和装填中的弹药，右下角显示即将击发的类型。
+- 两档的直接命中和爆炸倍率可分别配置，保留原距离衰减、爆炸范围及击退。
+
+### 新材料配方
+
+| 材料 / 工序 | 配方 |
+| --- | --- |
+| 高能火药饼 | 2 火药 + 1 木炭 + 250 mB 水 + 2 玫瑰石英，加热搅拌 → 10 个 |
+| 高能干燥火药饼 | 高能火药饼烟熏，时间与原配方相同 |
+| 高能火药柱 | 10 高能干燥火药饼，塑型 → 1 个 |
+| 高能发射药 | 1 高能干燥火药饼，冲压 → 4 个 |
+| 火药衍生物 | 1 高能发射药 ⇄ 5 高能火药丸；1 高能火药丸 ⇄ 4 高能火药颗粒 |
+| 高能炸药 | 1 黑曜石粉末 + 2 烈焰粉 + 2 火药，搅拌 → 4 个，无加热要求 |
+| 硬化弹头 | 普通小型弹头、大型弹头、金属弹丸分别熔炉烧炼，1 → 1，200 tick |
+| 高能已装药弹壳 | 原弹壳与原底火，火药换成高能版本；12g 同时使用硬化金属弹丸 |
+| 精密常规弹药 | 高能已装药弹壳 + 硬化弹头，按原装配次数和产量完成 |
+| 精密 RPG 战斗部 | 原动力合成中的火药换为高能炸药 |
+| 精密 RPG 发动机 / 发射药 | 原动力合成中的火药柱换为高能火药柱 |
+| 精密 40mm 榴弹部件 | 炸药装药、引信使用对应高能火药；无引信榴弹使用精密装药及高能发射药 |
+
+不添加高能底火药，也不添加高能发射药与红石合成底火药的配方。40mm 的 `tacz_c:booster_charge_40mm` 保留原物品。RPG 和榴弹部件均使用“精密的”名称，不使用硬化名称。
+
+高能火药饼生产时可在工作盆过滤器中指定高能火药饼，防止材料尚未到齐时提前生产普通火药饼。
+
+高能装药流程以高能火药作为第一步投入，从而让机械手按所持材料选择产线；后续保留所需的底火、纸壳、弹托等材料及数量。加工中物品独立记录 Create 的装配进度。详细物品 ID 见 [材料清单](docs/materials.md)。
 
 ## 混装与退弹规则
 
@@ -32,73 +59,91 @@ TaCZ 自己的退弹路径返还弹匣中的相应品质弹药，并保持其原
 
 该命令也结束当前换弹/拉栓流程。正常生存弹药按品质返还至物品栏，放不下的部分掉落在玩家身边。
 
-单个弹药盒只存一种口径和一种品质，拒绝混存；取弹不会将改良弹变回普通弹。创造弹药盒维持无限供弹规则。虚拟备弹没有改良品质；燃料式武器的已装入燃料沿用 TaCZ 的卸载不返还规则，避免将一个燃料单位转换成多发物品。无限装填生成的弹药不通过退弹转换成物品。
+单个弹药盒只存一种口径和一种品质，拒绝混存；取弹不会将改良弹变回普通弹。创造弹药盒维持无限供弹规则。虚拟备弹仅为普通品质；燃料式武器的已装入燃料沿用 TaCZ 的卸载不返还规则，避免将一个燃料单位转换成多发物品。无限装填生成的弹药不通过退弹转换成物品。
 
-TaCZ 新生成且尚未建立本模组记录的枪械，按原生装弹数量初始化为普通弹。禁用某个口径的生成不会删除已有改良弹。
+TaCZ 新生成且尚未建立本模组记录的枪械，按原生装弹数量初始化为普通弹。调整创造栏生成范围不会删除已有弹药。
 
 ## 配置与枪包扩展
 
-首次启动后生成两个配置文件。
+首次启动后生成两个配置文件。添加标准 TaCZ 枪包无需改 Java；模组按枪械的 AmmoId 自动识别三档弹药。枪包需要提供有效的 TaCZ 弹药定义及原始名称、贴图资源。
 
-`config/tacz_bsb-common.toml`：在配方加载前读取，控制生成范围。客户端和服务端建议使用相同设置，以保持创造栏一致。
+`config/tacz_bsb-common.toml`：控制两档弹药的创造栏生成范围及改良弹的自动配方替换。建议客户端和服务端配置一致，修改后重启。
 
 ```toml
-enabledAmmo = ["*"]
+enabledImprovedAmmo = ["*"]
+enabledPreciseAmmo = ["*"]
 recipeNamespaces = ["tacz_c"]
 ```
 
-`enabledAmmo` 支持 `*`、`tacz:*` 或完整弹药 ID；留空则不生成改良变种/自动替换配方。`recipeNamespaces` 是需要自动替换流水线成品的配方命名空间列表。修改后重启最稳妥；服务器配方也可以用 `/reload` 刷新。
+启用列表支持 `*`、`tacz:*`、完整 AmmoId，允许分别留空。默认自动给所有有效弹药提供两档变种。`recipeNamespaces` 中的 Create 序列装配最终普通弹药输出会替换为改良弹。新枪包配方由整合包作者自行添加；本模组只提供默认 Create: TaCZ 的精密生产链。
 
-`tacz_bsb-server.toml`：本次验证环境生成于 `config/`，使用存档专用配置的环境请修改对应 `serverconfig/` 文件。此配置由 NeoForge 同步给客户端。
+`tacz_bsb-server.toml`：NeoForge 同步给客户端；修改实例 `config/` 或存档 `serverconfig/` 中实际生成的文件。
 
 ```toml
-directDamageMultiplier = 1.5
-explosionDamageMultiplier = 1.5
+improvedDirectDamageMultiplier = 1.5
+improvedExplosionDamageMultiplier = 1.5
+preciseDirectDamageMultiplier = 2.0
+preciseExplosionDamageMultiplier = 2.0
+improvedDamageOverrides = []
+preciseDamageOverrides = []
 fifoAmmo = ["tacz:12g"]
-damageOverrides = []
 hudOffsetX = 0
 hudOffsetY = 0
 ```
 
-例如，为一个标准 TaCZ 扩展包启用自动配方替换，并让它的特殊弹药使用不同增伤：
+只为某个扩展包启用改良弹、为另一个启用精密弹的示例：
 
 ```toml
-# common 文件；示例名称需要换成实际包中的 ID
-enabledAmmo = ["tacz:*", "my_pack:*"]
-recipeNamespaces = ["tacz_c", "my_pack"]
+# common 文件：替换示例中的枪包 ID
+enabledImprovedAmmo = ["tacz:*", "my_pack:custom_round"]
+enabledPreciseAmmo = ["tacz:*", "another_pack:custom_round"]
 ```
 
 ```toml
-# server 文件：依次为直接伤害和爆炸伤害倍率
-damageOverrides = ["my_pack:special_ammo=1.8,2.0"]
-fifoAmmo = ["tacz:12g", "my_pack:shotgun_shell"]
+# server 文件：每项依次指定直接命中、爆炸倍率；范围 0–100
+improvedDamageOverrides = ["my_pack:custom_round=1.8,1.6"]
+preciseDamageOverrides = ["another_pack:custom_round=2.5,3.0"]
 ```
 
-枪械通过枪包里的弹药 ID 自动匹配两种品质，不需要为每把枪编写 Java 代码。枪包仍需提供其自身的有效 TaCZ 弹药定义与客户端资源。模组不会为没有流水线配方的扩展弹药凭空设计生产步骤；可用数据包添加符合 Create 格式的配方，再将其命名空间加入上述列表。
-
-也可在数据包的流水线 `results` 中直接指定改良成品：
+KubeJS 或数据包配方中的成品条目可直接使用以下格式，不需要改模组代码。将 `precise_ammo` 改为 `improved_ammo` 即得到改良版本：
 
 ```json
 {
   "id": "tacz_bsb:precise_ammo",
   "count": 16,
   "components": {
-    "minecraft:custom_data": { "AmmoId": "my_pack:special_ammo" }
+    "minecraft:custom_data": { "AmmoId": "my_pack:custom_round" }
   }
 }
 ```
 
-这是一个成品条目，需放入完整的 Create 配方中。自动替换识别当前移植版使用的对象形式 `minecraft:custom_data`；其他自定义格式可直接使用上面的改良成品格式。
+例如 KubeJS 服务端脚本添加搅拌配方：
 
-用于调试的获取命令：
+```js
+ServerEvents.recipes(event => {
+  event.custom({
+    type: 'create:mixing',
+    ingredients: [{ item: 'minecraft:iron_ingot' }], // 示例材料，自行设计
+    results: [{
+      id: 'tacz_bsb:precise_ammo', count: 16,
+      components: { 'minecraft:custom_data': { AmmoId: 'my_pack:custom_round' } }
+    }]
+  })
+})
+```
+
+直接获取两档弹药：
 
 ```mcfunction
+/give @s tacz_bsb:improved_ammo[minecraft:custom_data={AmmoId:"tacz:9mm"}] 64
 /give @s tacz_bsb:precise_ammo[minecraft:custom_data={AmmoId:"tacz:9mm"}] 64
 ```
 
+两档为独立注册物品，同一档不同口径是带 AmmoId 的物品变种。配置控制展示和自动替换范围，不清除已存在的物品；固定精密配方也可以由数据包或 KubeJS 修改、移除。
+
 ## 必选依赖
 
-| 模组 | 本次验证版本 | 构建仓库 |
+| 模组 | 锁定版本 | 构建仓库 |
 | --- | --- | --- |
 | [TaCZ 1.21.1 NeoForge Port](https://modrinth.com/mod/tacz-1.21.1) | 1.1.8-hotfix-r6 | Modrinth Maven |
 | [Create: TaCZ Port](https://www.curseforge.com/minecraft/mc-mods/create-timeless-and-classics-zero-tacz-port/files/8087867) | 1.0.2+neoforge.1.21.1 | Curse Maven |
@@ -124,7 +169,7 @@ Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物
 
 - `build` 包含 JUnit 单元测试，报告在 `build/reports/tests/test/index.html`。
 - `runGameTestServer` 在 `build/gametest-run` 运行真实前置模组和集成测试，完成后退出。
-- `runClientSmoke` 先运行服务端测试并复制隔离测试世界，再启动客户端，检查 24 种弹药渲染、创造栏、状态同步和 HUD，保存截图后自动退出。需要图形环境；截图位于 `build/client-smoke/screenshots/`。
+- `runClientSmoke` 先运行服务端测试并复制隔离测试世界，再启动客户端，检查 24 种口径的三档弹药渲染、创造栏、状态同步和 HUD，保存截图后自动退出。需要图形环境；截图位于 `build/client-smoke/screenshots/`。
 - 日常开发使用 `runClient` / `runServer`。正式 JAR 排除游戏测试类和测试结构。
 
 测试范围与技术边界见 [测试记录](docs/testing.md)。实现细节见 [实现说明](docs/implementation.md)。

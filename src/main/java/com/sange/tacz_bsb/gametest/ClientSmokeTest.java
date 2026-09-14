@@ -31,11 +31,11 @@ public final class ClientSmokeTest {
             if (TimelessAPI.getAllClientAmmoIndex().size() != 24) throw new IllegalStateException("Expected 24 client ammo indexes");
             net.minecraft.world.item.CreativeModeTabs.tryRebuildTabContents(mc.level.enabledFeatures(), true, mc.level.registryAccess());
             long variants = com.tacz.guns.init.ModCreativeTabs.AMMO_TAB.get().getDisplayItems().stream()
-                    .filter(AmmoTransactions::precise).count();
-            if (variants != 24) throw new IllegalStateException("Expected 24 precise ammo in TaCZ creative tab, got " + variants);
-            for (var entry : TimelessAPI.getAllClientAmmoIndex()) {
-                var ordinary = AmmoTransactions.stack(entry.getKey(), false, 1);
-                var precise = AmmoTransactions.stack(entry.getKey(), true, 1);
+                    .filter(item -> AmmoTransactions.tier(item) > 1).count();
+            if (variants != 48) throw new IllegalStateException("Expected 48 enhanced ammo in TaCZ creative tab, got " + variants);
+            for (var entry : TimelessAPI.getAllClientAmmoIndex()) for (int tier = 2; tier <= 3; tier++) {
+                var ordinary = AmmoTransactions.stack(entry.getKey(), 1, 1);
+                var precise = AmmoTransactions.stack(entry.getKey(), tier, 1);
                 var baseModel = mc.getItemRenderer().getModel(ordinary, mc.level, mc.player, 0);
                 var preciseModel = mc.getItemRenderer().getModel(precise, mc.level, mc.player, 0);
                 if (baseModel.usesBlockLight() != preciseModel.usesBlockLight()) throw new IllegalStateException("Ammo GUI lighting differs");
@@ -46,11 +46,23 @@ public final class ClientSmokeTest {
                         throw new IllegalStateException("Ammo model transform differs: " + entry.getKey() + " " + context);
                 }
             }
+            var createTab = net.minecraft.core.registries.BuiltInRegistries.CREATIVE_MODE_TAB.get(
+                    net.minecraft.resources.ResourceLocation.parse("tacz_c:timeless_and_classics_zero_creatified"));
+            for (var item : com.sange.tacz_bsb.BsbMaterials.ITEMS.values()) {
+                if (createTab.getDisplayItems().stream().noneMatch(stack -> stack.is(item.get())))
+                    throw new IllegalStateException("Material missing from Create TaCZ creative tab: " + item.getId());
+                var stack = item.get().getDefaultInstance();
+                if (mc.getItemRenderer().getModel(stack, mc.level, mc.player, 0) == mc.getModelManager().getMissingModel())
+                    throw new IllegalStateException("Missing material model: " + item.getId());
+                if (!stack.hasFoil()) throw new IllegalStateException("Missing material glint: " + item.getId());
+            }
             mc.setScreen(new Preview());
             started = true;
         }
         if (started && ++ticks == 40) Screenshot.grab(mc.gameDirectory, "bsb-client-smoke.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 50) Screenshot.grab(mc.gameDirectory, "bsb-glint-animation.png", mc.getMainRenderTarget(), message -> {});
+        if (started && ticks == 52) mc.setScreen(new MaterialsPreview());
+        if (started && ticks == 58) Screenshot.grab(mc.gameDirectory, "bsb-materials.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 60) {
             mc.setScreen(null);
             var uuid = mc.player.getUUID();
@@ -84,7 +96,7 @@ public final class ClientSmokeTest {
                         .setFireMode(com.tacz.guns.api.item.gun.FireMode.SEMI).setAmmoCount(1).setAmmoInBarrel(true)
                         .build(server.registryAccess());
                 var state = com.sange.tacz_bsb.ammo.AmmoLedger.ordinary(0, false);
-                state.magazine.addLast(true, 1);
+                state.magazine.addLast(3, 1);
                 com.sange.tacz_bsb.ammo.AmmoState.write(stack, com.tacz.guns.api.item.IGun.getIGunOrNull(stack), state);
                 player.getInventory().setItem(0, stack);
                 player.inventoryMenu.broadcastChanges();
@@ -92,41 +104,55 @@ public final class ClientSmokeTest {
         }
         if (started && ticks == 220) {
             var state = com.sange.tacz_bsb.ammo.AmmoState.display(mc.player.getMainHandItem());
-            if (state == null || state.nextRound(true, false) != 2) throw new IllegalStateException("RPG precision display regression");
+            if (state == null || state.nextRound(true, false) != 3) throw new IllegalStateException("RPG precision display regression");
             Screenshot.grab(mc.gameDirectory, "bsb-rpg-hud.png", mc.getMainRenderTarget(), message -> {});
         }
         if (started && (ticks == 230 || ticks == 300)) {
-            boolean precise = ticks == 300;
+            int tier = ticks == 300 ? 3 : 1;
             var uuid = mc.player.getUUID();
             var server = mc.getSingleplayerServer();
             server.execute(() -> {
                 var player = server.getPlayerList().getPlayer(uuid);
-                player.getInventory().setItem(0, AmmoTransactions.stack(net.minecraft.resources.ResourceLocation.parse("tacz:9mm"), precise, 1));
+                player.getInventory().setItem(0, AmmoTransactions.stack(net.minecraft.resources.ResourceLocation.parse("tacz:9mm"), tier, 1));
                 player.inventoryMenu.broadcastChanges();
             });
         }
         if (started && ticks == 290) Screenshot.grab(mc.gameDirectory, "bsb-hand-normal.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 360) Screenshot.grab(mc.gameDirectory, "bsb-hand-precise.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 400) {
-            System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 paired icons rendered, equal model transforms/lighting, creative tab, state sync, RPG HUD and held ammo checked");
+            System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 85 material models, state sync, RPG HUD and held ammo checked");
             mc.stop();
+        }
+    }
+    private static final class MaterialsPreview extends Screen {
+        MaterialsPreview() { super(Component.literal("BSB materials")); }
+        @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.fill(0, 0, width, height, 0xFF20242A);
+            graphics.drawString(font, "85 glint materials / 38 stackable / 47 assembly intermediates", 12, 8, 0xFFFFFF);
+            int i = 0;
+            for (var item : com.sange.tacz_bsb.BsbMaterials.ITEMS.values()) {
+                int x = 12 + (i % 15) * 26, y = 35 + (i / 15) * 26;
+                graphics.renderItem(item.get().getDefaultInstance(), x, y);
+                i++;
+            }
         }
     }
     private static final class Preview extends Screen {
         private final List<ItemStack> items = TimelessAPI.getAllClientAmmoIndex().stream()
                 .sorted(java.util.Comparator.comparing(e -> e.getKey().toString()))
-                .map(e -> AmmoTransactions.stack(e.getKey(), true, 1)).toList();
+                .map(e -> AmmoTransactions.stack(e.getKey(), 2, 1)).toList();
         Preview() { super(Component.literal("BSB rendering smoke test")); }
         @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             graphics.fill(0, 0, width, height, 0xFF20242A);
-            graphics.drawString(font, "Ordinary / Precise - 24 ammo pairs", 12, 8, 0xFFFFFF);
+            graphics.drawString(font, "Ordinary / Improved / Precise - 24 calibers", 12, 8, 0xFFFFFF);
             for (int i = 0; i < items.size(); i++) {
                 int x = 12 + (i % 3) * (width / 3), y = 30 + (i / 3) * 24;
                 var stack = items.get(i);
                 var id = ((com.tacz.guns.api.item.IAmmo)stack.getItem()).getAmmoId(stack);
-                graphics.renderItem(AmmoTransactions.stack(id, false, 1), x, y);
+                graphics.renderItem(AmmoTransactions.stack(id, 1, 1), x, y);
                 graphics.renderItem(stack, x + 20, y);
-                graphics.drawString(font, font.plainSubstrByWidth(id.getPath(), width / 3 - 48), x + 40, y + 4, 0xFFD36B);
+                graphics.renderItem(AmmoTransactions.stack(id, 3, 1), x + 40, y);
+                graphics.drawString(font, font.plainSubstrByWidth(id.getPath(), width / 3 - 68), x + 60, y + 4, 0xFFD36B);
             }
         }
     }

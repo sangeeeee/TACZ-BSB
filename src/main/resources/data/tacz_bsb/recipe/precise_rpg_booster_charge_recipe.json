@@ -1,0 +1,19 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "key": {
+    "G": {
+      "item": "tacz_bsb:high_gunpowder_cylinder"
+    },
+    "S": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    "SGGGGS"
+  ],
+  "result": {
+    "count": 6,
+    "id": "tacz_bsb:precise_rpg_booster_charge"
+  }
+}

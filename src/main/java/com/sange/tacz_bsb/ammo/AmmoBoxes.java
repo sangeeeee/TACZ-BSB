@@ -22,13 +22,13 @@ public final class AmmoBoxes {
             var index = TimelessAPI.getCommonAmmoIndex(box.getAmmoId(boxStack));
             if (index.isEmpty()) return false;
             int requested = Math.min(index.get().getStackSize(), box.getAmmoCount(boxStack));
-            ItemStack result = AmmoTransactions.stack(box.getAmmoId(boxStack), AmmoTransactions.preciseBox(boxStack), requested);
+            ItemStack result = AmmoTransactions.stack(box.getAmmoId(boxStack), AmmoTransactions.boxTier(boxStack), requested);
             int accepted = requested - slot.safeInsert(result).getCount();
             if (accepted <= 0) return false;
             box.setAmmoCount(boxStack, box.getAmmoCount(boxStack) - accepted);
             if (box.getAmmoCount(boxStack) == 0) {
                 box.setAmmoId(boxStack, DefaultAssets.EMPTY_AMMO_ID);
-                boxStack.remove(BsbContent.PRECISE_BOX.get());
+                boxStack.remove(BsbContent.BOX_TIER.get());
             }
             player.playSound(SoundEvents.BUNDLE_REMOVE_ONE, 0.8f, 1);
             return true;
@@ -37,13 +37,13 @@ public final class AmmoBoxes {
         var id = ammo.getAmmoId(candidate);
         var index = TimelessAPI.getCommonAmmoIndex(id);
         if (index.isEmpty()) return false;
-        boolean precise = AmmoTransactions.precise(candidate);
+        int tier = AmmoTransactions.tier(candidate);
         boolean empty = box.getAmmoId(boxStack).equals(DefaultAssets.EMPTY_AMMO_ID) || box.getAmmoCount(boxStack) <= 0;
-        if (!empty && (!box.getAmmoId(boxStack).equals(id) || AmmoTransactions.preciseBox(boxStack) != precise)) return false;
+        if (!empty && (!box.getAmmoId(boxStack).equals(id) || AmmoTransactions.boxTier(boxStack) != tier)) return false;
         if (box.isCreative(boxStack)) {
             box.setAmmoId(boxStack, id);
             box.setAmmoCount(boxStack, Integer.MAX_VALUE);
-            boxStack.set(BsbContent.PRECISE_BOX.get(), precise);
+            boxStack.set(BsbContent.BOX_TIER.get(), tier);
             return true;
         }
         long capacity = (long) index.get().getStackSize() * SyncConfig.AMMO_BOX_STACK_SIZE.get() * (box.getAmmoLevel(boxStack) + 1);
@@ -52,7 +52,7 @@ public final class AmmoBoxes {
         if (taken.isEmpty()) return false;
         int old = empty ? 0 : box.getAmmoCount(boxStack);
         box.setAmmoId(boxStack, id);
-        boxStack.set(BsbContent.PRECISE_BOX.get(), precise);
+        boxStack.set(BsbContent.BOX_TIER.get(), tier);
         box.setAmmoCount(boxStack, old + taken.getCount());
         player.playSound(SoundEvents.BUNDLE_INSERT, 0.8f, 1);
         return true;

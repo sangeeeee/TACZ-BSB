@@ -1,5 +1,24 @@
 # 测试记录
 
+## 三档弹药与精密产线（2026-09-14）
+
+当前发布版本仍为 NeoForge `1.0.0-beta`。本节记录本次新增精密弹药后的验证；下文为历史记录。
+
+- **9 项 JUnit 通过**：三档弹药逐发顺序、管式弹仓、弹膛和装填事务；100 个随机种子 × 1,000 步核对三种弹药各自数量，并穿插序列化；原配方替换行为。
+- **11 项服务端 GameTest 通过**：原有换弹脚本、中断、退弹、弹药盒、存档、背包供弹检查，以及新增三档混装和 RPG 三档显示/击发。改良弹直接命中与爆炸默认 1.5 倍，精密弹均为 2 倍；距离衰减比例保留。
+- **64 条新配方全部加载**。通过实际 Create 配方选择与结果接口逐步执行全部 **47 条新增序列装配链**，检查每一步选中的配方 ID、最终产物和全部 24 种精密弹药输出。未搭建完整实体工厂跑机械运输。
+- **客户端检查通过**：24 种口径的三档图标、48 个强化变种的创造栏、全部 85 个材料的创造栏与模型、同原弹药的模型变换/光照、组件同步、RPG 精密弹紫色 HUD 和手持渲染。
+- 修正了本次验证发现的材料堆叠限制问题：38 个材料/部件可堆叠，47 个加工中物品使用 Create 的单个堆叠与进度条。
+
+执行：`gradlew test runGameTestServer`；修复材料堆叠后重跑 `gradlew runGameTestServer`；`gradlew runClientSmoke -x runGameTestServer` 复用通过验证的隔离测试世界。
+
+日志：[服务端](../build/precise-validation.log)、[客户端](../build/precise-client-validation.log)。JUnit 报告：[HTML](../build/reports/tests/test/index.html)。
+
+截图：[三档弹药](../build/client-smoke/screenshots/bsb-client-smoke.png)、[新材料](../build/client-smoke/screenshots/bsb-materials.png)、[精密 RPG HUD](../build/client-smoke/screenshots/bsb-rpg-hud.png)。
+
+验证针对锁定的前置模组及标准 TaCZ 接口。未对任意第三方枪包、多人压力或 JEI/KubeJS 交互进行全面测试；扩展说明提供标准配方 JSON 和配置示例。
+
+
 ## 当前版本：NeoForge 1.0.0-beta
 
 内部版本为 `1.0.0-beta`，发行文件为 `build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。NeoForge 不接受以 `neoforge-` 开头的内部版本号，因此平台标识放在文件名中。

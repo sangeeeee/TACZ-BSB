@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_55645"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:high_casefull_55645"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_55645"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_grains"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_55645"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_55645"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_55645"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_55645"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_55645"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_high_casefull_55645"
+  }
+}

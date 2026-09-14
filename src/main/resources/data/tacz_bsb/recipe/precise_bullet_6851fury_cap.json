@@ -1,0 +1,51 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_6851fury"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:68x51fury"
+        }
+      },
+      "id": "tacz_bsb:precise_ammo"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_6851fury"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_6851fury"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_6851fury"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_6851fury"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_6851fury"
+  }
+}

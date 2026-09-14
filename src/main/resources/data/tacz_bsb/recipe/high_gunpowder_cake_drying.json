@@ -1,0 +1,12 @@
+{
+  "type": "minecraft:smoking",
+  "category": "misc",
+  "experience": 1,
+  "cookingtime": 50,
+  "ingredient": {
+    "item": "tacz_bsb:high_gunpowder_cake"
+  },
+  "result": {
+    "id": "tacz_bsb:high_gunpowder_cake_dry"
+  }
+}

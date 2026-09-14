@@ -1,0 +1,14 @@
+{
+  "type": "create:pressing",
+  "ingredients": [
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    }
+  ],
+  "results": [
+    {
+      "count": 4,
+      "id": "tacz_bsb:high_gunpowder_charge"
+    }
+  ]
+}

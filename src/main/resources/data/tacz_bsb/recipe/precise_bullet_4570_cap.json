@@ -1,0 +1,83 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_4570"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:45_70"
+        }
+      },
+      "id": "tacz_bsb:precise_ammo"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_4570"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_4570"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_4570"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_4570"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_4570"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_4570"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_4570"
+  }
+}

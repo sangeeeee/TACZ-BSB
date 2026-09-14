@@ -1,0 +1,67 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:precise_rpg_warhead"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:rpg_rocket"
+        }
+      },
+      "id": "tacz_bsb:precise_ammo"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_rpg_rocket"
+        },
+        {
+          "item": "tacz_bsb:precise_rpg_sustainer_motor"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_rpg_rocket"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_rpg_rocket"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_rpg_rocket"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_rpg_rocket"
+        },
+        {
+          "item": "tacz_bsb:precise_rpg_booster_charge"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_rpg_rocket"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_rpg_rocket"
+  }
+}

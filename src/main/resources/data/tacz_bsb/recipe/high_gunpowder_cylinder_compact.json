@@ -1,0 +1,40 @@
+{
+  "type": "create:compacting",
+  "ingredients": [
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_cake_dry"
+    }
+  ],
+  "results": [
+    {
+      "id": "tacz_bsb:high_gunpowder_cylinder"
+    }
+  ]
+}

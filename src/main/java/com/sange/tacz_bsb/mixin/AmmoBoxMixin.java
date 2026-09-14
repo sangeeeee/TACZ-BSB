@@ -19,7 +19,7 @@ public abstract class AmmoBoxMixin {
     }
     @WrapMethod(method = "isFoil")
     private boolean bsb$foil(ItemStack box, Operation<Boolean> original) {
-        return AmmoTransactions.preciseBox(box) || original.call(box);
+        return AmmoTransactions.boxTier(box) > 1 || original.call(box);
     }
 }
 

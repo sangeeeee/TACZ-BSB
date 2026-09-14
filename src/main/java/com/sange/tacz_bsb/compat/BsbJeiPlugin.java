@@ -12,6 +12,7 @@ import net.minecraft.resources.ResourceLocation;
 public final class BsbJeiPlugin implements IModPlugin {
     @Override public ResourceLocation getPluginUid() { return ResourceLocation.parse("tacz_bsb:jei"); }
     @Override public void registerItemSubtypes(ISubtypeRegistration registration) {
+        registration.registerSubtypeInterpreter(BsbContent.IMPROVED_AMMO.get(), GunModSubtype.getAmmoSubtype());
         registration.registerSubtypeInterpreter(BsbContent.PRECISE_AMMO.get(), GunModSubtype.getAmmoSubtype());
     }
 }

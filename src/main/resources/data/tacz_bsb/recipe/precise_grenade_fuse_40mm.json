@@ -1,0 +1,30 @@
+{
+  "type": "create:mechanical_crafting",
+  "accept_mirrored": true,
+  "key": {
+    "P": {
+      "item": "tacz_c:primer"
+    },
+    "R": {
+      "item": "minecraft:redstone"
+    },
+    "G": {
+      "item": "tacz_bsb:high_gunpowder_charge"
+    },
+    "N": {
+      "tag": "tacz_c:metal_nuggets"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " GG  ",
+    "IGRNP",
+    " GG  "
+  ],
+  "result": {
+    "count": 45,
+    "id": "tacz_bsb:precise_fuse_40mm"
+  }
+}

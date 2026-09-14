@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_500mag"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:high_casefull_500mag"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_500mag"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_500mag"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_500mag"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_500mag"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_500mag"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_500mag"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_high_casefull_500mag"
+  }
+}

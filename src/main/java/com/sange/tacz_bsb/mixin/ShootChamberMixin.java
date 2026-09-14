@@ -40,7 +40,7 @@ public abstract class ShootChamberMixin {
         if (check && !gun.useDummyAmmo(stack)) { original.call(count, stack, check); return; }
         int obtained = check ? gun.findAndExtractDummyAmmo(stack, count) : count;
         var state = AmmoState.read(stack, gun);
-        state.reserve.addLast(false, obtained);
+        state.reserve.addLast(1, obtained);
         AmmoState.write(stack, gun, state);
     }
 }

@@ -1,0 +1,26 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "create:powdered_obsidian"
+    },
+    {
+      "item": "minecraft:blaze_powder"
+    },
+    {
+      "item": "minecraft:blaze_powder"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    }
+  ],
+  "results": [
+    {
+      "id": "tacz_bsb:high_explosive",
+      "count": 4
+    }
+  ]
+}

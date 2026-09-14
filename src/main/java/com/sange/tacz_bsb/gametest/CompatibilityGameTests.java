@@ -41,7 +41,7 @@ public final class CompatibilityGameTests {
                 for (var result : recipe.resultPool) {
                     var stack = result.getStack();
                     test.assertFalse(stack.is(ModItems.AMMO.get()), "An ordinary assembly output remains: " + holder.id());
-                    if (stack.is(BsbContent.PRECISE_AMMO.get())) changed++;
+                    if (stack.is(BsbContent.IMPROVED_AMMO.get())) changed++;
                 }
             }
         }
@@ -49,6 +49,80 @@ public final class CompatibilityGameTests {
         test.assertValueEqual(TimelessAPI.getAllCommonAmmoIndex().size(), 24, "default ammo coverage");
         test.assertTrue(test.getLevel().getRecipeManager().byKey(ResourceLocation.parse("tacz:ammo/9mm")).isPresent(),
                 "Original workbench recipe must remain");
+        test.succeed();
+    }
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void preciseProductionChains(GameTestHelper test) {
+        int recipes = 0, ammo = 0, assemblies = 0;
+        for (var holder : test.getLevel().getRecipeManager().getRecipes()) {
+            if (!holder.id().getNamespace().equals("tacz_bsb")) continue;
+            recipes++;
+            if (!(holder.value() instanceof SequencedAssemblyRecipe recipe)) continue;
+            assemblies++;
+            ItemStack input = recipe.getIngredient().getItems()[0].copyWithCount(1);
+            for (int i = 0; i < recipe.getLoops() * recipe.getSequence().size(); i++) {
+                var step = recipe.getSequence().get(i % recipe.getSequence().size()).getRecipe();
+                com.simibubi.create.content.processing.recipe.ProcessingRecipe<?, ?> selected;
+                if (step instanceof com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe) {
+                    var slots = new net.neoforged.neoforge.items.ItemStackHandler(2);
+                    slots.setStackInSlot(0, input);
+                    slots.setStackInSlot(1, step.getIngredients().get(1).getItems()[0].copyWithCount(1));
+                    var chosen = SequencedAssemblyRecipe.getRecipe(test.getLevel(),
+                            new net.neoforged.neoforge.items.wrapper.RecipeWrapper(slots),
+                            com.simibubi.create.AllRecipeTypes.DEPLOYING.getType(),
+                            com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe.class).orElseThrow();
+                    test.assertValueEqual(chosen.id(), holder.id(), "deployer selects correct tier: " + holder.id() + " step " + i);
+                    selected = chosen.value();
+                } else {
+                    var chosen = SequencedAssemblyRecipe.getRecipe(test.getLevel(), input,
+                            com.simibubi.create.AllRecipeTypes.PRESSING.getType(),
+                            com.simibubi.create.content.kinetics.press.PressingRecipe.class).orElseThrow();
+                    test.assertValueEqual(chosen.id(), holder.id(), "press selects correct tier: " + holder.id());
+                    selected = chosen.value();
+                }
+                var outputs = selected.rollResults(test.getLevel().random);
+                test.assertValueEqual(outputs.size(), 1, "assembly step output count");
+                input = outputs.getFirst();
+            }
+            test.assertTrue(ItemStack.matches(input, recipe.getResultItem(test.getLevel().registryAccess())), "completed assembly: " + holder.id());
+            if (input.is(BsbContent.PRECISE_AMMO.get())) ammo++;
+        }
+        test.assertValueEqual(recipes, 64, "all new recipes loaded");
+        test.assertValueEqual(assemblies, 47, "all precise assembly chains");
+        test.assertValueEqual(ammo, 24, "all precise final ammunition outputs");
+        test.assertValueEqual(com.sange.tacz_bsb.BsbMaterials.ITEMS.size(), 85, "registered materials");
+        for (var entry : com.sange.tacz_bsb.BsbMaterials.ITEMS.values())
+            test.assertTrue(entry.get().getDefaultInstance().hasFoil(), "material glint");
+        test.succeed();
+    }
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void threeTierReloadSaveUnload(GameTestHelper test) {
+        var api = setup(test, "tacz:glock_17");
+        var player = (ServerPlayer) api.getShooter();
+        var id = ResourceLocation.parse("tacz:9mm");
+        for (int tier = 1; tier <= 3; tier++) player.getInventory().setItem(tier, AmmoTransactions.stack(id, tier, 3));
+        test.assertValueEqual(api.consumeAmmoFromPlayer(12), 9, "extract all three tiers");
+        api.putAmmoInMagazine(9);
+        api.removeAmmoFromMagazine(1);
+        api.setAmmoInBarrel(true);
+        for (int i = 0; i < 4; i++) api.reduceAmmoOnce();
+        var state = AmmoState.read(api.getItemStack(), api.getAbstractGunItem());
+        test.assertValueEqual(state.chamber, 2, "improved round in chamber");
+        test.assertValueEqual(state.countTier(1), 0, "ordinary rounds spent");
+        test.assertValueEqual(state.countTier(2), 2, "improved remainder");
+        test.assertValueEqual(state.countTier(3), 3, "precise remainder");
+        var saved = api.getItemStack().save(test.getLevel().registryAccess());
+        var restored = ItemStack.parseOptional(test.getLevel().registryAccess(), (net.minecraft.nbt.CompoundTag) saved);
+        var restoredState = AmmoState.read(restored, IGun.getIGunOrNull(restored));
+        test.assertValueEqual(restoredState.magazine.runs(), state.magazine.runs(), "three-tier save ordering");
+        test.assertValueEqual(restoredState.chamber, state.chamber, "saved chamber");
+        AmmoTransactions.unload(player, api.getItemStack(), true);
+        int[] returned = new int[4];
+        for (var item : player.getInventory().items) if (item.getItem() instanceof com.tacz.guns.api.item.IAmmo)
+            returned[AmmoTransactions.tier(item)] += item.getCount();
+        test.assertValueEqual(returned[1], 0, "ordinary unload");
+        test.assertValueEqual(returned[2], 2, "improved unload");
+        test.assertValueEqual(returned[3], 3, "precise unload");
         test.succeed();
     }
     private static ModernKineticGunScriptAPI setup(GameTestHelper test, String gunId) {
@@ -76,8 +150,8 @@ public final class CompatibilityGameTests {
         var api = setup(test, "tacz:glock_17");
         var player = (ServerPlayer) api.getShooter();
         var id = ResourceLocation.parse("tacz:9mm");
-        player.getInventory().setItem(1, AmmoTransactions.stack(id, false, 2));
-        player.getInventory().setItem(2, AmmoTransactions.stack(id, true, 3));
+        player.getInventory().setItem(1, AmmoTransactions.stack(id, 1, 2));
+        player.getInventory().setItem(2, AmmoTransactions.stack(id, 2, 3));
         test.assertValueEqual(api.consumeAmmoFromPlayer(10), 5, "actual extracted count");
         test.assertValueEqual(api.putAmmoInMagazine(10), 5, "unbacked rounds rejected");
         api.removeAmmoFromMagazine(1);
@@ -86,13 +160,13 @@ public final class CompatibilityGameTests {
         test.assertTrue(api.reduceAmmoOnce(), "second ordinary round");
         var state = AmmoState.read(api.getItemStack(), api.getAbstractGunItem());
         test.assertValueEqual(state.chamber, 2, "precise chamber after two ordinary shots");
-        test.assertValueEqual(state.preciseCount(), 3, "precise quantity");
+        test.assertValueEqual(state.countTier(2), 3, "precise quantity");
         var saved = api.getItemStack().save(test.getLevel().registryAccess());
         var restored = ItemStack.parseOptional(test.getLevel().registryAccess(), (net.minecraft.nbt.CompoundTag)saved);
-        test.assertValueEqual(AmmoState.read(restored, IGun.getIGunOrNull(restored)).preciseCount(), 3, "save/reload");
+        test.assertValueEqual(AmmoState.read(restored, IGun.getIGunOrNull(restored)).countTier(2), 3, "save/reload");
         AmmoTransactions.unload(player, api.getItemStack(), true);
         int precise = 0;
-        for (var item : player.getInventory().items) if (AmmoTransactions.precise(item)) precise += item.getCount();
+        for (var item : player.getInventory().items) if ((AmmoTransactions.tier(item) == 2)) precise += item.getCount();
         test.assertValueEqual(precise, 3, "unload preserves precise rounds");
         test.assertValueEqual(api.getAmmoAmount(), 0, "empty magazine");
         test.assertFalse(api.hasAmmoInBarrel(), "empty chamber");
@@ -107,25 +181,25 @@ public final class CompatibilityGameTests {
         IAmmoBox box = (IAmmoBox) boxStack.getItem();
         var container = new SimpleContainer(1);
         Slot slot = new Slot(container, 0, 0, 0);
-        container.setItem(0, AmmoTransactions.stack(id, true, 6));
+        container.setItem(0, AmmoTransactions.stack(id, 2, 6));
         test.assertTrue(boxStack.getItem().overrideStackedOnOther(boxStack, slot, ClickAction.SECONDARY, player), "box insertion");
-        test.assertTrue(AmmoTransactions.preciseBox(boxStack), "box quality");
-        container.setItem(0, AmmoTransactions.stack(id, false, 2));
+        test.assertTrue((AmmoTransactions.boxTier(boxStack) == 2), "box quality");
+        container.setItem(0, AmmoTransactions.stack(id, 1, 2));
         test.assertFalse(boxStack.getItem().overrideStackedOnOther(boxStack, slot, ClickAction.SECONDARY, player), "reject mixing in box");
         test.assertValueEqual(box.getAmmoCount(boxStack), 6, "box count unchanged");
         container.setItem(0, ItemStack.EMPTY);
         test.assertTrue(boxStack.getItem().overrideStackedOnOther(boxStack, slot, ClickAction.SECONDARY, player), "box withdrawal");
-        test.assertTrue(AmmoTransactions.precise(slot.getItem()), "withdrawal item quality");
+        test.assertTrue((AmmoTransactions.tier(slot.getItem()) == 2), "withdrawal item quality");
         test.assertValueEqual(slot.getItem().getCount(), 6, "withdrawal count");
         box.setCreative(boxStack, false);
-        container.setItem(0, AmmoTransactions.stack(id, true, 4));
+        container.setItem(0, AmmoTransactions.stack(id, 2, 4));
         test.assertTrue(boxStack.getItem().overrideStackedOnOther(boxStack, slot, ClickAction.SECONDARY, player), "configure creative precise box");
         test.assertValueEqual(box.getAmmoCount(boxStack), Integer.MAX_VALUE, "creative box supply");
         test.assertValueEqual(slot.getItem().getCount(), 4, "creative box does not consume selector ammo");
         player.getInventory().setItem(1, boxStack);
         test.assertValueEqual(api.consumeAmmoFromPlayer(3), 3, "extract from creative box");
         api.putAmmoInMagazine(3);
-        test.assertValueEqual(AmmoState.read(api.getItemStack(), api.getAbstractGunItem()).preciseCount(), 3, "creative box preserves precision");
+        test.assertValueEqual(AmmoState.read(api.getItemStack(), api.getAbstractGunItem()).countTier(2), 3, "creative box preserves precision");
         test.assertValueEqual(box.getAmmoCount(boxStack), Integer.MAX_VALUE, "creative supply remains infinite");
         test.succeed();
     }
@@ -135,8 +209,8 @@ public final class CompatibilityGameTests {
         var data = IGunOperator.fromLivingEntity(api.getShooter()).getDataHolder();
         data.shootTimestamp = -10000;
         var state = AmmoLedger.ordinary(0, false);
-        state.magazine.addLast(true, 1);
-        state.magazine.addLast(false, 1);
+        state.magazine.addLast(2, 1);
+        state.magazine.addLast(1, 1);
         AmmoState.write(api.getItemStack(), api.getAbstractGunItem(), state);
         var draw = new com.tacz.guns.entity.shooter.LivingEntityDrawGun(api.getShooter(), data);
         var shoot = new com.tacz.guns.entity.shooter.LivingEntityShoot(api.getShooter(), data, draw);
@@ -163,8 +237,8 @@ public final class CompatibilityGameTests {
                 var stack = api.getItemStack();
                 var data = IGunOperator.fromLivingEntity(player).getDataHolder();
                 var id = AmmoTransactions.ammoId(stack);
-                player.getInventory().setItem(1, AmmoTransactions.stack(id, false, 8));
-                player.getInventory().setItem(2, AmmoTransactions.stack(id, true, 8));
+                player.getInventory().setItem(1, AmmoTransactions.stack(id, 1, 8));
+                player.getInventory().setItem(2, AmmoTransactions.stack(id, 2, 8));
                 data.reloadStateType = com.tacz.guns.api.entity.ReloadState.StateType.EMPTY_RELOAD_FEEDING;
                 data.reloadTimestamp = System.currentTimeMillis();
                 test.assertTrue(gun.startReload(data, stack, player), "start reload: " + gunId);
@@ -173,11 +247,11 @@ public final class CompatibilityGameTests {
                     if (tick == interruptAt) gun.interruptReload(data, stack, player);
                     data.reloadStateType = gun.tickReload(data, stack, player).getStateType();
                     var ledger = AmmoState.read(stack, gun);
-                    int count = ledger.total(), precise = ledger.preciseCount();
+                    int count = ledger.total(), precise = ledger.countTier(2);
                     for (var item : player.getInventory().items) {
                         if (item.getItem() instanceof com.tacz.guns.api.item.IAmmo) {
                             count += item.getCount();
-                            if (AmmoTransactions.precise(item)) precise += item.getCount();
+                            if ((AmmoTransactions.tier(item) == 2)) precise += item.getCount();
                         }
                     }
                     test.assertValueEqual(count, 16, "reload count: " + gunId + " tick " + tick);
@@ -188,7 +262,7 @@ public final class CompatibilityGameTests {
                 int total = 0, precise = 0;
                 for (var item : player.getInventory().items) if (item.getItem() instanceof com.tacz.guns.api.item.IAmmo) {
                     total += item.getCount();
-                    if (AmmoTransactions.precise(item)) precise += item.getCount();
+                    if ((AmmoTransactions.tier(item) == 2)) precise += item.getCount();
                 }
                 test.assertValueEqual(total, 16, "unload after script: " + gunId);
                 test.assertValueEqual(precise, 8, "precise unload after script: " + gunId);
@@ -209,15 +283,15 @@ public final class CompatibilityGameTests {
         try {
             type.set(reload, com.tacz.guns.resource.pojo.data.gun.FeedType.INVENTORY);
             var id = AmmoTransactions.ammoId(stack);
-            player.getInventory().setItem(1, AmmoTransactions.stack(id, false, 1));
-            player.getInventory().setItem(2, AmmoTransactions.stack(id, true, 2));
+            player.getInventory().setItem(1, AmmoTransactions.stack(id, 1, 1));
+            player.getInventory().setItem(2, AmmoTransactions.stack(id, 2, 2));
             api.consumeAmmoFromPlayer(1);
             api.setAmmoInBarrel(true);
             test.assertTrue(api.reduceAmmoOnce(), "inventory ordinary chamber shot");
             test.assertValueEqual(AmmoState.read(stack, gun).chamber, 2, "inventory precise chamber");
             test.assertTrue(api.reduceAmmoOnce(), "inventory precise shot");
             AmmoTransactions.unload(player, stack, true);
-            int remaining = player.getInventory().items.stream().filter(AmmoTransactions::precise).mapToInt(ItemStack::getCount).sum();
+            int remaining = player.getInventory().items.stream().filter(item -> AmmoTransactions.tier(item) == 2).mapToInt(ItemStack::getCount).sum();
             test.assertValueEqual(remaining, 1, "inventory unload returns chamber only");
         } finally { type.set(reload, old); }
         gun.setDummyAmmoAmount(stack, 7);
@@ -232,8 +306,10 @@ public final class CompatibilityGameTests {
     }
     @GameTest(template = "empty", timeoutTicks = 200)
     public static void projectileDamage(GameTestHelper test) {
-        checkDamage(test, "tacz:glock_17", false, 1.5f, 1.5f);
-        checkDamage(test, "tacz:rpg7", true, 1.5f, 1.5f);
+        checkDamage(test, "tacz:glock_17", 2, false, 1.5f, 1.5f);
+        checkDamage(test, "tacz:rpg7", 2, true, 1.5f, 1.5f);
+        checkDamage(test, "tacz:glock_17", 3, false, 2f, 2f);
+        checkDamage(test, "tacz:rpg7", 3, true, 2f, 2f);
         test.succeed();
     }
     @GameTest(template = "empty", timeoutTicks = 200)
@@ -243,7 +319,7 @@ public final class CompatibilityGameTests {
         try {
             com.sange.tacz_bsb.BsbConfig.DIRECT.set(2.0);
             com.sange.tacz_bsb.BsbConfig.EXPLOSION.set(3.0);
-            checkDamage(test, "tacz:rpg7", true, 2f, 3f);
+            checkDamage(test, "tacz:rpg7", 2, true, 2f, 3f);
         } finally {
             com.sange.tacz_bsb.BsbConfig.DIRECT.set(direct);
             com.sange.tacz_bsb.BsbConfig.EXPLOSION.set(explosion);
@@ -265,8 +341,8 @@ public final class CompatibilityGameTests {
         };
         NeoForge.EVENT_BUS.addListener(listener);
         try {
-            for (boolean precise : new boolean[]{false, true}) {
-                player.getInventory().setItem(1, AmmoTransactions.stack(AmmoTransactions.ammoId(stack), precise, 1));
+            for (int tier : new int[]{1, 2, 3}) {
+                player.getInventory().setItem(1, AmmoTransactions.stack(AmmoTransactions.ammoId(stack), tier, 1));
                 data.reloadStateType = com.tacz.guns.api.entity.ReloadState.StateType.EMPTY_RELOAD_FEEDING;
                 data.reloadTimestamp = System.currentTimeMillis();
                 gun.startReload(data, stack, player);
@@ -276,33 +352,35 @@ public final class CompatibilityGameTests {
                 gun.setBulletInBarrel(stack, true);
                 var state = AmmoState.read(stack, gun);
                 test.assertValueEqual(state.total(), 1, "RPG reload contains exactly one rocket");
-                test.assertValueEqual(AmmoState.display(stack).nextRound(true, false), precise ? 2 : 1, "HUD reads magazine for RPG");
-                test.assertValueEqual(AmmoTransactions.peek(api), precise ? 2 : 1, "non-consuming shot quality");
+                test.assertValueEqual(AmmoState.display(stack).nextRound(true, false), tier, "HUD reads magazine for RPG");
+                test.assertValueEqual(AmmoTransactions.peek(api), tier, "non-consuming shot quality");
                 api.shootOnce(false); // Creative/infinite shooting must use the same quality as survival/HUD.
                 test.assertValueEqual(AmmoState.read(stack, gun).total(), 1, "non-consuming shot retains rocket");
-                if (!precise) test.assertTrue(api.reduceAmmoOnce(), "consume ordinary rocket for next reload");
+                if (tier != 3) test.assertTrue(api.reduceAmmoOnce(), "consume ordinary rocket for next reload");
             }
         } finally { NeoForge.EVENT_BUS.unregister(listener); }
-        test.assertValueEqual(bullets.size(), 2, "two RPG projectiles");
+        test.assertValueEqual(bullets.size(), 3, "three RPG projectiles");
         float normal = bullets.get(0).getDamage(bullets.get(0).position());
         test.assertTrue(Math.abs(bullets.get(1).getDamage(bullets.get(1).position()) - normal * 1.5f) < 0.001f, "RPG direct damage");
         float explosion = ((BulletAccessor)bullets.get(0)).bsb$getExplosionDamage();
         test.assertTrue(Math.abs(((BulletAccessor)bullets.get(1)).bsb$getExplosionDamage() - explosion * 1.5f) < 0.001f, "RPG explosive damage");
+        test.assertTrue(Math.abs(bullets.get(2).getDamage(bullets.get(2).position()) - normal * 2f) < 0.001f, "precise RPG direct damage");
+        test.assertTrue(Math.abs(((BulletAccessor)bullets.get(2)).bsb$getExplosionDamage() - explosion * 2f) < 0.001f, "precise RPG explosive damage");
         AmmoTransactions.unload(player, stack, true);
         int returned = 0;
         for (var item : player.getInventory().items) if (item.getItem() instanceof com.tacz.guns.api.item.IAmmo) {
-            test.assertTrue(AmmoTransactions.precise(item), "no phantom ordinary round on RPG unload");
+            test.assertTrue((AmmoTransactions.tier(item) == 3), "no phantom ordinary round on RPG unload");
             returned += item.getCount();
         }
         test.assertValueEqual(returned, 1, "return only the real precise rocket");
         for (var bullet : bullets) bullet.discard();
         test.succeed();
     }
-    private static void checkDamage(GameTestHelper test, String gunId, boolean explosion, float directMultiplier, float explosionMultiplier) {
+    private static void checkDamage(GameTestHelper test, String gunId, int tier, boolean explosion, float directMultiplier, float explosionMultiplier) {
         var api = setup(test, gunId);
         var state = AmmoLedger.ordinary(api.getBolt() == com.tacz.guns.resource.pojo.data.gun.Bolt.OPEN_BOLT ? 1 : 0,
                 api.getBolt() != com.tacz.guns.resource.pojo.data.gun.Bolt.OPEN_BOLT);
-        state.magazine.addLast(true, 1);
+        state.magazine.addLast(tier, 1);
         AmmoState.write(api.getItemStack(), api.getAbstractGunItem(), state);
         var bullets = new ArrayList<EntityKineticBullet>();
         Consumer<EntityJoinLevelEvent> listener = event -> {

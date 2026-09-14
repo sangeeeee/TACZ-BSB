@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:booster_charge_40mm"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "id": "tacz_bsb:precise_fuseless_40mm"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_charge"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        },
+        {
+          "item": "tacz_bsb:precise_explosive_charge_40mm"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_fuseless_40mm"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_fuseless_40mm"
+  }
+}

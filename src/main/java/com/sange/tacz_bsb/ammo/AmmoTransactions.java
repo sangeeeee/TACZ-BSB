@@ -2,7 +2,7 @@ package com.sange.tacz_bsb.ammo;
 
 import com.sange.tacz_bsb.BsbConfig;
 import com.sange.tacz_bsb.BsbContent;
-import com.sange.tacz_bsb.item.PreciseAmmoItem;
+import com.sange.tacz_bsb.item.TieredAmmoItem;
 import com.tacz.guns.api.TimelessAPI;
 import com.tacz.guns.api.item.IAmmo;
 import com.tacz.guns.api.item.IAmmoBox;
@@ -30,12 +30,16 @@ public final class AmmoTransactions {
         return gun == null ? null : TimelessAPI.getCommonGunIndex(gun.getGunId(stack))
                 .map(index -> index.getGunData().getAmmoId()).orElse(null);
     }
-    public static boolean precise(ItemStack stack) { return stack.getItem() instanceof PreciseAmmoItem; }
-    public static boolean preciseBox(ItemStack stack) { return stack.getOrDefault(BsbContent.PRECISE_BOX.get(), false); }
-    public static ItemStack stack(ResourceLocation id, boolean precise, int count) {
-        if (!precise) return AmmoItemBuilder.create().setId(id).setCount(count).build();
-        ItemStack stack = new ItemStack(BsbContent.PRECISE_AMMO.get(), count);
-        BsbContent.PRECISE_AMMO.get().setAmmoId(stack, id);
+    public static int tier(ItemStack stack) {
+        return stack.getItem() instanceof TieredAmmoItem ammo ? ammo.tier() : 1;
+    }
+    public static int boxTier(ItemStack stack) { return stack.getOrDefault(BsbContent.BOX_TIER.get(), 1); }
+    public static ItemStack stack(ResourceLocation id, int tier, int count) {
+        if (tier == 1) return AmmoItemBuilder.create().setId(id).setCount(count).build();
+        if (tier != 2 && tier != 3) throw new IllegalArgumentException("Invalid ammunition tier");
+        TieredAmmoItem item = tier == 3 ? BsbContent.PRECISE_AMMO.get() : BsbContent.IMPROVED_AMMO.get();
+        ItemStack stack = new ItemStack(item, count);
+        item.setAmmoId(stack, id);
         return stack;
     }
     public static int extract(IItemHandler inventory, ItemStack stack, int requested) {
@@ -48,18 +52,18 @@ public final class AmmoTransactions {
             if (candidate.getItem() instanceof IAmmo ammo && ammo.isAmmoOfGun(stack, candidate)) {
                 ItemStack obtained = inventory.extractItem(slot, left, false);
                 if (!obtained.isEmpty()) {
-                    extracted.addLast(precise(obtained), obtained.getCount());
+                    extracted.addLast(tier(obtained), obtained.getCount());
                     left -= obtained.getCount();
                 }
             } else if (candidate.getItem() instanceof IAmmoBox box && box.isAmmoBoxOfGun(stack, candidate)) {
                 int count = Math.min(Math.max(box.getAmmoCount(candidate), 0), left);
                 if (count == 0) continue;
-                boolean quality = preciseBox(candidate);
+                int quality = boxTier(candidate);
                 if (!box.isCreative(candidate) && !box.isAllTypeCreative(candidate)) {
                     box.setAmmoCount(candidate, box.getAmmoCount(candidate) - count);
                     if (box.getAmmoCount(candidate) == 0) {
                         box.setAmmoId(candidate, com.tacz.guns.api.DefaultAssets.EMPTY_AMMO_ID);
-                        candidate.remove(BsbContent.PRECISE_BOX.get());
+                        candidate.remove(BsbContent.BOX_TIER.get());
                     }
                 }
                 extracted.addLast(quality, count);
@@ -76,14 +80,14 @@ public final class AmmoTransactions {
         AbstractGunItem gun = api.getAbstractGunItem();
         if (api.useInventoryAmmo() && !api.isReloadingNeedConsumeAmmo()) {
             AmmoLedger state = AmmoState.read(stack, gun);
-            state.reserve.addLast(false, amount);
+            state.reserve.addLast(1, amount);
             AmmoState.write(stack, gun, state);
             return amount;
         }
         if (gun.useDummyAmmo(stack)) {
             int obtained = gun.findAndExtractDummyAmmo(stack, amount);
             AmmoLedger state = AmmoState.read(stack, gun);
-            state.reserve.addLast(false, obtained);
+            state.reserve.addLast(1, obtained);
             AmmoState.write(stack, gun, state);
             return obtained;
         }
@@ -102,7 +106,7 @@ public final class AmmoTransactions {
         if (fuel && !state.reserve.isEmpty()) {
             int count = Math.min(amount, Math.max(0, api.getMaxAmmoCount() - state.magazine.size()));
             if (count == 0) return amount;
-            boolean type = state.reserve.removeFirst();
+            int type = state.reserve.removeFirst();
             state.magazine.addLast(type, count);
             AmmoState.write(stack, gun, state);
             return amount - count;
@@ -125,7 +129,7 @@ public final class AmmoTransactions {
         if (api.getBolt() != Bolt.OPEN_BOLT) state.chamber(present, free(api));
         AmmoState.write(stack, api.getAbstractGunItem(), state);
     }
-    /** 0 = dry fire, 1 = ordinary, 2 = precise. Called once per consumed cartridge. */
+    /** 0 = dry fire, 1 = ordinary, 2 = improved, 3 = precise. Called once per consumed cartridge. */
     public static int fire(ModernKineticGunScriptAPI api) {
         ItemStack stack = api.getItemStack();
         AbstractGunItem gun = api.getAbstractGunItem();
@@ -141,7 +145,7 @@ public final class AmmoTransactions {
             int oldChamber = state.chamber;
             int got = consume(api, 1);
             state = AmmoState.read(stack, gun);
-            int obtained = got > 0 ? (state.reserve.removeFirst() ? 2 : 1) : 0;
+            int obtained = got > 0 ? state.reserve.removeFirst() : 0;
             int fired = oldChamber != 0 && bolt != Bolt.OPEN_BOLT ? oldChamber : obtained;
             state.chamber = oldChamber != 0 && bolt != Bolt.OPEN_BOLT ? obtained : 0;
             AmmoState.write(stack, gun, state);
@@ -173,7 +177,7 @@ public final class AmmoTransactions {
         AmmoLedger state = AmmoState.read(stack, gun);
         RoundQueue rounds = state.magazine.take(state.magazine.size());
         if (includeChamber && state.chamber != 0) {
-            rounds.addLast(state.chamber == 2, 1);
+            rounds.addLast(state.chamber, 1);
             state.chamber = 0;
         }
         RoundQueue pending = state.reserve.take(state.reserve.size());
@@ -195,9 +199,9 @@ public final class AmmoTransactions {
         if (owner instanceof Player player && player.isCreative()) return;
         ResourceLocation id = ammoId(gunStack);
         for (int run : rounds.runs()) {
-            int left = Math.abs(run);
+            int left = RoundQueue.count(run);
             while (left > 0) {
-                ItemStack item = stack(id, run > 0, 1);
+                ItemStack item = stack(id, RoundQueue.type(run), 1);
                 int count = Math.min(left, item.getMaxStackSize());
                 item.setCount(count);
                 if (owner instanceof Player player) ItemHandlerHelper.giveItemToPlayer(player, item);

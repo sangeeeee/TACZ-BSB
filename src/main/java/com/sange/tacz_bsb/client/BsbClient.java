@@ -10,7 +10,7 @@ import com.tacz.guns.config.client.RenderConfig;
 import com.tacz.guns.resource.pojo.data.gun.Bolt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import com.sange.tacz_bsb.item.PreciseAmmoItem;
+import com.sange.tacz_bsb.item.TieredAmmoItem;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -41,38 +41,45 @@ public final class BsbClient {
                 for (int slot = 0; slot < mc.player.getInventory().getContainerSize(); slot++) {
                     var ammo = mc.player.getInventory().getItem(slot);
                     if (ammo.getItem() instanceof com.tacz.guns.api.item.IAmmo a && a.isAmmoOfGun(stack, ammo)) {
-                        type = AmmoTransactions.precise(ammo) ? 2 : 1; break;
+                        type = AmmoTransactions.tier(ammo); break;
                     }
                     if (ammo.getItem() instanceof com.tacz.guns.api.item.IAmmoBox box
                             && box.isAmmoBoxOfGun(stack, ammo) && box.getAmmoCount(ammo) > 0) {
-                        type = AmmoTransactions.preciseBox(ammo) ? 2 : 1; break;
+                        type = AmmoTransactions.boxTier(ammo); break;
                     }
                 }
             } else if (type == 0 && state == null && gun.getCurrentAmmoCount(stack) > 0) type = 1;
-            key = type == 2 ? "hud.tacz_bsb.precise" : type == 1 ? "hud.tacz_bsb.normal" : "hud.tacz_bsb.empty";
+            key = type > 1 ? "hud.tacz_bsb." + TieredAmmoItem.tierKey(type) : type == 1 ? "hud.tacz_bsb.normal" : "hud.tacz_bsb.empty";
         }
         var graphics = event.getGuiGraphics();
         Component text = Component.translatable(key);
         graphics.drawString(mc.font, text,
                 graphics.guiWidth() - 20 - mc.font.width(text) + BsbConfig.value(BsbConfig.HUD_X),
                 graphics.guiHeight() - 58 + BsbConfig.value(BsbConfig.HUD_Y),
-                type == 2 ? PreciseAmmoItem.NAME_COLOR : 0xDDDDDD, true);
+                TieredAmmoItem.color(type), true);
     }
     @SubscribeEvent
     public static void boxTooltip(ItemTooltipEvent event) {
-        if (AmmoTransactions.preciseBox(event.getItemStack())) {
-            event.getToolTip().add(Component.translatable("tooltip.tacz_bsb.box").withStyle(style -> style.withColor(PreciseAmmoItem.NAME_COLOR)));
+        int tier = AmmoTransactions.boxTier(event.getItemStack());
+        if (tier > 1) {
+            event.getToolTip().add(Component.translatable("tooltip.tacz_bsb.box", Component.translatable("tooltip.tacz_bsb." + TieredAmmoItem.tierKey(tier))).withStyle(style -> style.withColor(TieredAmmoItem.color(tier))));
         }
     }
     @EventBusSubscriber(modid = "tacz_bsb", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModEvents {
         @SubscribeEvent
         public static void creative(BuildCreativeModeTabContentsEvent event) {
+            if (event.getTabKey().location().toString().equals("tacz_c:timeless_and_classics_zero_creatified")) {
+                com.sange.tacz_bsb.BsbMaterials.ITEMS.values().forEach(event::accept);
+            }
             if (!event.getTabKey().equals(ModCreativeTabs.AMMO_TAB.getKey())) return;
             TimelessAPI.getAllCommonAmmoIndex().stream()
                     .sorted(java.util.Comparator.comparingInt(e -> e.getValue().getSort()))
-                    .filter(e -> BsbConfig.enabled(e.getKey().toString()))
-                    .forEach(e -> event.accept(AmmoTransactions.stack(e.getKey(), true, 1)));
+                    .forEach(e -> {
+                        for (int tier = 2; tier <= 3; tier++) {
+                            if (BsbConfig.enabled(e.getKey().toString(), tier)) event.accept(AmmoTransactions.stack(e.getKey(), tier, 1));
+                        }
+                    });
         }
     }
 }

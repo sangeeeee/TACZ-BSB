@@ -5,11 +5,11 @@ public final class AmmoLedger {
     public final RoundQueue magazine;
     public final RoundQueue reserve;
     public final RoundQueue transfer;
-    /** 0 = empty, 1 = normal, 2 = precise. */
+    /** 0 = empty, 1 = normal, 2 = improved, 3 = precise. */
     public int chamber;
 
     public AmmoLedger(RoundQueue magazine, RoundQueue reserve, RoundQueue transfer, int chamber) {
-        if (chamber < 0 || chamber > 2) throw new IllegalArgumentException("Invalid chamber");
+        if (chamber < 0 || chamber > 3) throw new IllegalArgumentException("Invalid chamber");
         this.magazine = magazine;
         this.reserve = reserve;
         this.transfer = transfer;
@@ -17,19 +17,19 @@ public final class AmmoLedger {
     }
     public static AmmoLedger ordinary(int count, boolean chamber) {
         RoundQueue rounds = new RoundQueue();
-        rounds.addLast(false, count);
+        rounds.addLast(1, count);
         return new AmmoLedger(rounds, new RoundQueue(), new RoundQueue(), chamber ? 1 : 0);
     }
     public int total() { return magazine.size() + reserve.size() + transfer.size() + (chamber == 0 ? 0 : 1); }
-    public int preciseCount() {
-        return magazine.preciseCount() + reserve.preciseCount() + transfer.preciseCount() + (chamber == 2 ? 1 : 0);
+    public int countTier(int tier) {
+        return magazine.countTier(tier) + reserve.countTier(tier) + transfer.countTier(tier) + (chamber == tier ? 1 : 0);
     }
     public int load(int requested, int capacity, boolean fifo, boolean free) {
         int accepted = Math.min(Math.max(0, requested), Math.max(0, capacity - magazine.size()));
         if (!free) accepted = Math.min(accepted, reserve.size());
         int backed = Math.min(accepted, reserve.size());
         RoundQueue batch = reserve.take(backed);
-        batch.addLast(false, accepted - backed);
+        batch.addLast(1, accepted - backed);
         if (fifo) magazine.append(batch); else magazine.prepend(batch);
         return requested - accepted;
     }
@@ -40,12 +40,12 @@ public final class AmmoLedger {
     }
     public void chamber(boolean present, boolean free) {
         if (!present) {
-            if (chamber != 0) transfer.addLast(chamber == 2, 1);
+            if (chamber != 0) transfer.addLast(chamber, 1);
             chamber = 0;
         } else if (chamber == 0) {
-            if (!transfer.isEmpty()) chamber = transfer.removeFirst() ? 2 : 1;
-            else if (!reserve.isEmpty()) chamber = reserve.removeFirst() ? 2 : 1;
-            else if (!magazine.isEmpty()) chamber = magazine.removeFirst() ? 2 : 1;
+            if (!transfer.isEmpty()) chamber = transfer.removeFirst();
+            else if (!reserve.isEmpty()) chamber = reserve.removeFirst();
+            else if (!magazine.isEmpty()) chamber = magazine.removeFirst();
             else if (free) chamber = 1;
         }
     }
@@ -53,7 +53,7 @@ public final class AmmoLedger {
     public int nextRound(boolean openBolt, boolean manual) {
         if (!openBolt && chamber != 0) return chamber;
         if (manual || magazine.isEmpty()) return 0;
-        return magazine.peek() ? 2 : 1;
+        return magazine.peek();
     }
     /** Returns fired type, zero for dry fire. */
     public int fire(boolean openBolt, boolean manual) {
@@ -68,9 +68,9 @@ public final class AmmoLedger {
             chamber = 0;
         } else {
             if (magazine.isEmpty()) return 0;
-            fired = magazine.removeFirst() ? 2 : 1;
+            fired = magazine.removeFirst();
         }
-        if (!openBolt && !magazine.isEmpty()) chamber = magazine.removeFirst() ? 2 : 1;
+        if (!openBolt && !magazine.isEmpty()) chamber = magazine.removeFirst();
         return fired;
     }
 }

@@ -1,0 +1,51 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:precise_fuseless_40mm"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "components": {
+        "minecraft:custom_data": {
+          "AmmoId": "tacz:40mm"
+        }
+      },
+      "id": "tacz_bsb:precise_ammo"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_40mm"
+        },
+        {
+          "item": "tacz_bsb:precise_fuse_40mm"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_40mm"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_40mm"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_precise_40mm"
+        }
+      ]
+    }
+  ],
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_precise_40mm"
+  }
+}

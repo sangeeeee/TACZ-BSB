@@ -25,7 +25,7 @@ public final class RecipeRewriter {
             if (!custom.isJsonObject() || !custom.getAsJsonObject().has("AmmoId")) continue;
             String ammo = custom.getAsJsonObject().get("AmmoId").getAsString();
             if (!enabled.test(ammo)) continue;
-            output.addProperty("id", "tacz_bsb:precise_ammo");
+            output.addProperty("id", "tacz_bsb:improved_ammo");
             changed = true;
         }
         return changed ? copy : input;
