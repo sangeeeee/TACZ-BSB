@@ -1,6 +1,7 @@
 package com.sange.tacz_bsb;
 
 import com.sange.tacz_bsb.item.TieredAmmoItem;
+import com.sange.tacz_bsb.item.UniversalAmmoBoxItem;
 import com.mojang.serialization.Codec;
 import net.minecraft.core.component.DataComponentType;
 import net.minecraft.core.registries.Registries;
@@ -15,6 +16,10 @@ public final class BsbContent {
     public static final DeferredRegister.Items ITEMS = DeferredRegister.createItems("tacz_bsb");
     public static final DeferredItem<TieredAmmoItem> PRECISE_AMMO = ITEMS.register("precise_ammo", () -> new TieredAmmoItem(3));
     public static final DeferredItem<TieredAmmoItem> IMPROVED_AMMO = ITEMS.register("improved_ammo", () -> new TieredAmmoItem(2));
+    public static final DeferredItem<UniversalAmmoBoxItem> IMPROVED_UNIVERSAL_AMMO_BOX =
+            ITEMS.register("improved_universal_ammo_box", () -> new UniversalAmmoBoxItem(2));
+    public static final DeferredItem<UniversalAmmoBoxItem> PRECISE_UNIVERSAL_AMMO_BOX =
+            ITEMS.register("precise_universal_ammo_box", () -> new UniversalAmmoBoxItem(3));
     public static final DeferredRegister<DataComponentType<?>> COMPONENTS =
             DeferredRegister.create(Registries.DATA_COMPONENT_TYPE, "tacz_bsb");
     public static final DeferredHolder<DataComponentType<?>, DataComponentType<CustomData>> AMMO_STATE =

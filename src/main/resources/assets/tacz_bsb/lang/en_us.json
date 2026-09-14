@@ -95,5 +95,7 @@
   "item.tacz_bsb.improved_ammo": "Improved %s",
   "tooltip.tacz_bsb.improved": "Improved Ammunition",
   "tooltip.tacz_bsb.precise": "Precise Ammunition",
-  "hud.tacz_bsb.improved": "Ammo: Improved"
+  "hud.tacz_bsb.improved": "Ammo: Improved",
+  "item.tacz_bsb.improved_universal_ammo_box": "Improved Universal Creative Ammo Box",
+  "item.tacz_bsb.precise_universal_ammo_box": "Precise Universal Creative Ammo Box"
 }

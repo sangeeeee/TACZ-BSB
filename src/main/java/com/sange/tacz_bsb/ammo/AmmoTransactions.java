@@ -33,7 +33,10 @@ public final class AmmoTransactions {
     public static int tier(ItemStack stack) {
         return stack.getItem() instanceof TieredAmmoItem ammo ? ammo.tier() : 1;
     }
-    public static int boxTier(ItemStack stack) { return stack.getOrDefault(BsbContent.BOX_TIER.get(), 1); }
+    public static int boxTier(ItemStack stack) {
+        return stack.getItem() instanceof com.sange.tacz_bsb.item.UniversalAmmoBoxItem box
+                ? box.tier() : stack.getOrDefault(BsbContent.BOX_TIER.get(), 1);
+    }
     public static ItemStack stack(ResourceLocation id, int tier, int count) {
         if (tier == 1) return AmmoItemBuilder.create().setId(id).setCount(count).build();
         if (tier != 2 && tier != 3) throw new IllegalArgumentException("Invalid ammunition tier");

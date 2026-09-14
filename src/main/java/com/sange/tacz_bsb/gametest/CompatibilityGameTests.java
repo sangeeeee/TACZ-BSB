@@ -220,6 +220,60 @@ public final class CompatibilityGameTests {
         test.assertFalse(api.hasAmmoInBarrel(), "empty chamber");
         test.succeed();
     }
+    @GameTest(template = "empty", timeoutTicks = 400)
+    public static void universalBoxesSupplyEveryGun(GameTestHelper test) {
+        for (int tier = 1; tier <= 3; tier++) {
+            ItemStack supply = tier == 1 ? new ItemStack(ModItems.AMMO_BOX.get())
+                    : new ItemStack(tier == 2 ? BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX.get() : BsbContent.PRECISE_UNIVERSAL_AMMO_BOX.get());
+            var box = (IAmmoBox) supply.getItem();
+            if (tier == 1) box.setCreative(supply, true);
+            var before = supply.copy();
+            for (var entry : TimelessAPI.getAllCommonGunIndex()) {
+                var api = setup(test, entry.getKey().toString());
+                var player = (ServerPlayer) api.getShooter();
+                player.getInventory().setItem(1, supply);
+                test.assertTrue(box.isAmmoBoxOfGun(api.getItemStack(), supply), "universal caliber match: " + entry.getKey());
+                if (api.useInventoryAmmo()) {
+                    if (api.getBolt() == com.tacz.guns.resource.pojo.data.gun.Bolt.MANUAL_ACTION) {
+                        test.assertValueEqual(api.consumeAmmoFromPlayer(1), 1, "inventory chamber extraction");
+                        api.setAmmoInBarrel(true);
+                    }
+                    test.assertValueEqual(AmmoTransactions.fire(api), tier, "inventory-fed shot quality: " + entry.getKey());
+                    test.assertTrue(ItemStack.matches(supply, before), "inventory-fed box unchanged");
+                    test.assertValueEqual(box.getAmmoCount(supply), Integer.MAX_VALUE, "inventory-fed unlimited supply");
+                    continue;
+                }
+                test.assertValueEqual(api.consumeAmmoFromPlayer(2), 2, "universal extraction");
+                api.putAmmoInMagazine(2);
+                var state = AmmoState.read(api.getItemStack(), api.getAbstractGunItem());
+                test.assertTrue(state.total() > 0, "gun received rounds");
+                test.assertValueEqual(state.countTier(tier), state.total(), "correct universal quality: " + entry.getKey());
+                if (api.getBolt() != com.tacz.guns.resource.pojo.data.gun.Bolt.OPEN_BOLT) api.setAmmoInBarrel(true);
+                test.assertValueEqual(AmmoTransactions.peek(api), tier, "next shot quality: " + entry.getKey());
+                test.assertTrue(ItemStack.matches(supply, before), "unlimited box contents unchanged");
+                test.assertValueEqual(box.getAmmoCount(supply), Integer.MAX_VALUE, "unlimited supply");
+            }
+        }
+        for (int tier = 2; tier <= 3; tier++) for (String id : new String[]{"tacz:glock_17", "tacz:m870", "tacz:rpg7"}) {
+            var api = setup(test, id);
+            var player = (ServerPlayer) api.getShooter();
+            var stack = api.getItemStack();
+            var gun = api.getAbstractGunItem();
+            player.getInventory().setItem(1, new ItemStack(tier == 2 ? BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX.get() : BsbContent.PRECISE_UNIVERSAL_AMMO_BOX.get()));
+            var data = IGunOperator.fromLivingEntity(player).getDataHolder();
+            data.reloadStateType = com.tacz.guns.api.entity.ReloadState.StateType.EMPTY_RELOAD_FEEDING;
+            data.reloadTimestamp = System.currentTimeMillis();
+            test.assertTrue(gun.startReload(data, stack, player), "start universal reload: " + id);
+            for (int tick = 0; tick < 600 && data.reloadStateType.isReloading(); tick++) {
+                data.reloadTimestamp -= 50;
+                data.reloadStateType = gun.tickReload(data, stack, player).getStateType();
+            }
+            var state = AmmoState.read(stack, gun);
+            test.assertTrue(state.total() > 0, "universal reload completed");
+            test.assertValueEqual(state.countTier(tier), state.total(), "actual reload preserves tier: " + id);
+        }
+        test.succeed();
+    }
     @GameTest(template = "empty", timeoutTicks = 200)
     public static void boxesKeepQuality(GameTestHelper test) {
         var api = setup(test, "tacz:glock_17");

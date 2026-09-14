@@ -60,7 +60,17 @@ public final class BsbClient {
     @EventBusSubscriber(modid = "tacz_bsb", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModEvents {
         @SubscribeEvent
+        public static void colors(net.neoforged.neoforge.client.event.RegisterColorHandlersEvent.Item event) {
+            event.register(com.tacz.guns.item.AmmoBoxItem::getColor,
+                    com.sange.tacz_bsb.BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX.get(),
+                    com.sange.tacz_bsb.BsbContent.PRECISE_UNIVERSAL_AMMO_BOX.get());
+        }
+        @SubscribeEvent
         public static void creative(BuildCreativeModeTabContentsEvent event) {
+            if (event.getTabKey().equals(ModCreativeTabs.OTHER_TAB.getKey())) {
+                event.accept(com.sange.tacz_bsb.BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX);
+                event.accept(com.sange.tacz_bsb.BsbContent.PRECISE_UNIVERSAL_AMMO_BOX);
+            }
             if (event.getTabKey().location().toString().equals("tacz_c:timeless_and_classics_zero_creatified")) {
                 com.sange.tacz_bsb.BsbMaterials.ITEMS.values().stream()
                         .filter(item -> !AssemblyVisibility.hidden(item.get().getDefaultInstance())).forEach(event::accept);

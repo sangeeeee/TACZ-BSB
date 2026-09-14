@@ -61,6 +61,17 @@ public final class ClientSmokeTest {
                     throw new IllegalStateException("Missing material model: " + item.getId());
                 if (!stack.hasFoil()) throw new IllegalStateException("Missing material glint: " + item.getId());
             }
+            for (var box : new com.sange.tacz_bsb.item.UniversalAmmoBoxItem[]{
+                    com.sange.tacz_bsb.BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX.get(),
+                    com.sange.tacz_bsb.BsbContent.PRECISE_UNIVERSAL_AMMO_BOX.get()}) {
+                var stack = box.getDefaultInstance();
+                if (!com.tacz.guns.init.ModCreativeTabs.OTHER_TAB.get().getDisplayItems().stream().anyMatch(item -> item.is(box)))
+                    throw new IllegalStateException("Universal box missing from TaCZ creative tab");
+                if (!stack.hasFoil() || stack.getHoverName().getStyle().getColor().getValue() != com.sange.tacz_bsb.item.TieredAmmoItem.color(box.tier()))
+                    throw new IllegalStateException("Universal box style mismatch");
+                if (mc.getItemRenderer().getModel(stack, mc.level, mc.player, 0) == mc.getModelManager().getMissingModel())
+                    throw new IllegalStateException("Missing universal box model");
+            }
             mc.setScreen(new Preview());
             started = true;
         }
@@ -93,6 +104,8 @@ public final class ClientSmokeTest {
         }
         if (started && ticks == 126) mc.setScreen(new BoxTooltipPreview());
         if (started && ticks == 140) Screenshot.grab(mc.gameDirectory, "bsb-box-tooltips.png", mc.getMainRenderTarget(), message -> {});
+        if (started && ticks == 143) mc.setScreen(new UniversalBoxPreview());
+        if (started && ticks == 148) Screenshot.grab(mc.gameDirectory, "bsb-universal-boxes.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 150) mc.setScreen(null);
         if (started && ticks == 160) {
             var uuid = mc.player.getUUID();
@@ -132,6 +145,18 @@ public final class ClientSmokeTest {
                 throw new IllegalStateException("JEI visibility verification did not complete");
             System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 85 material models, state sync, RPG HUD and held ammo checked");
             mc.stop();
+        }
+    }
+    private static final class UniversalBoxPreview extends Screen {
+        UniversalBoxPreview() { super(Component.literal("Universal ammo boxes")); }
+        @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.fill(0, 0, width, height, 0xFF20242A);
+            ItemStack[] boxes = {com.sange.tacz_bsb.BsbContent.IMPROVED_UNIVERSAL_AMMO_BOX.get().getDefaultInstance(),
+                    com.sange.tacz_bsb.BsbContent.PRECISE_UNIVERSAL_AMMO_BOX.get().getDefaultInstance()};
+            for (int i = 0; i < boxes.length; i++) {
+                graphics.renderItem(boxes[i], 20, 25 + i * 75);
+                graphics.renderTooltip(font, boxes[i], 50, 25 + i * 75);
+            }
         }
     }
     private static final class BoxTooltipPreview extends Screen {

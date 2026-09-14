@@ -95,5 +95,7 @@
   "item.tacz_bsb.improved_ammo": "改良的%s",
   "tooltip.tacz_bsb.improved": "改良弹药",
   "tooltip.tacz_bsb.precise": "精密弹药",
-  "hud.tacz_bsb.improved": "当前弹药：改良"
+  "hud.tacz_bsb.improved": "当前弹药：改良",
+  "item.tacz_bsb.improved_universal_ammo_box": "改良的全类型创造模式弹药盒",
+  "item.tacz_bsb.precise_universal_ammo_box": "精密的全类型创造模式弹药盒"
 }
