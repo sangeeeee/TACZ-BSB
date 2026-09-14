@@ -91,6 +91,9 @@ public final class ClientSmokeTest {
             if (state == null || state.chamber != 2 || state.magazine.size() != 1) throw new IllegalStateException("Ammo state did not synchronize to client");
             Screenshot.grab(mc.gameDirectory, "bsb-hud-smoke.png", mc.getMainRenderTarget(), message -> {});
         }
+        if (started && ticks == 126) mc.setScreen(new BoxTooltipPreview());
+        if (started && ticks == 140) Screenshot.grab(mc.gameDirectory, "bsb-box-tooltips.png", mc.getMainRenderTarget(), message -> {});
+        if (started && ticks == 150) mc.setScreen(null);
         if (started && ticks == 160) {
             var uuid = mc.player.getUUID();
             var server = mc.getSingleplayerServer();
@@ -129,6 +132,45 @@ public final class ClientSmokeTest {
                 throw new IllegalStateException("JEI visibility verification did not complete");
             System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 85 material models, state sync, RPG HUD and held ammo checked");
             mc.stop();
+        }
+    }
+    private static final class BoxTooltipPreview extends Screen {
+        private final java.util.ArrayList<ItemStack> boxes = new java.util.ArrayList<>();
+        BoxTooltipPreview() {
+            super(Component.literal("Ammo box tooltip verification"));
+            for (var entry : TimelessAPI.getAllClientAmmoIndex()) for (int tier = 1; tier <= 3; tier++) {
+                for (boolean creative : new boolean[]{false, true}) {
+                    ItemStack stack = new ItemStack(com.tacz.guns.init.ModItems.AMMO_BOX.get());
+                    var box = (com.tacz.guns.api.item.IAmmoBox) stack.getItem();
+                    box.setAmmoId(stack, entry.getKey());
+                    box.setAmmoCount(stack, 64);
+                    if (creative) box.setCreative(stack, false);
+                    stack.set(com.sange.tacz_bsb.BsbContent.BOX_TIER.get(), tier);
+                    var saved = stack.copy();
+                    var tooltip = (com.tacz.guns.inventory.tooltip.AmmoBoxTooltip) stack.getTooltipImage().orElseThrow();
+                    var ammo = tooltip.getAmmo();
+                    if (AmmoTransactions.tier(ammo) != tier || !((com.tacz.guns.api.item.IAmmo) ammo.getItem()).getAmmoId(ammo).equals(entry.getKey()))
+                        throw new IllegalStateException("Wrong inline ammo type: " + entry.getKey() + " tier " + tier);
+                    if (tier > 1 && (!ammo.hasFoil() || ammo.getHoverName().getStyle().getColor() == null
+                            || ammo.getHoverName().getStyle().getColor().getValue() != com.sange.tacz_bsb.item.TieredAmmoItem.color(tier)))
+                        throw new IllegalStateException("Wrong inline ammo name color/glint");
+                    var clientTooltip = new com.tacz.guns.client.tooltip.ClientAmmoBoxTooltip(tooltip);
+                    if (clientTooltip.getWidth(Minecraft.getInstance().font) < Minecraft.getInstance().font.width(ammo.getHoverName()) + 22)
+                        throw new IllegalStateException("Inline ammo name does not fit");
+                    if (!ItemStack.matches(stack, saved) || tooltip.getCount() != box.getAmmoCount(stack))
+                        throw new IllegalStateException("Tooltip modified ammo-box contents");
+                    if (!creative && entry.getKey().toString().equals("tacz:9mm")) boxes.add(stack.copy());
+                    box.setAmmoCount(stack, 0);
+                    if (stack.getTooltipImage().isPresent() != creative) throw new IllegalStateException("Incorrect empty/infinite box display");
+                    box.setAmmoId(stack, com.tacz.guns.api.DefaultAssets.EMPTY_AMMO_ID);
+                    if (stack.getTooltipImage().isPresent()) throw new IllegalStateException("Unassigned box shows ammo icon");
+                }
+            }
+            System.out.println("BSB_BOX_TOOLTIP_PASSED: 24 calibers x 3 tiers x normal/creative boxes, names, colors, glint, count, empty boxes");
+        }
+        @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
+            graphics.fill(0, 0, width, height, 0xFF20242A);
+            for (int i = 0; i < boxes.size(); i++) graphics.renderTooltip(font, boxes.get(i), 20, 12 + i * 75);
         }
     }
     private static final class MaterialsPreview extends Screen {

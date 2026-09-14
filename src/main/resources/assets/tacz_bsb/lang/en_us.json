@@ -2,7 +2,6 @@
   "item.tacz_bsb.precise_ammo": "Precise %s",
   "tooltip.tacz_bsb.damage": "Direct damage ×%s; explosion damage ×%s",
   "tooltip.tacz_bsb.production": "Assembly-line manufactured; original damage falloff",
-  "tooltip.tacz_bsb.box": "Contains %s (ammunition tiers are stored separately)",
   "hud.tacz_bsb.precise": "Ammo: Precise",
   "hud.tacz_bsb.normal": "Ammo: Normal",
   "hud.tacz_bsb.empty": "Empty",

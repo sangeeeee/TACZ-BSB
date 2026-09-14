@@ -16,7 +16,6 @@ import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
 import net.neoforged.neoforge.client.event.RenderGuiLayerEvent;
 import net.neoforged.neoforge.event.BuildCreativeModeTabContentsEvent;
-import net.neoforged.neoforge.event.entity.player.ItemTooltipEvent;
 
 @EventBusSubscriber(modid = "tacz_bsb", value = Dist.CLIENT)
 public final class BsbClient {
@@ -57,13 +56,6 @@ public final class BsbClient {
                 graphics.guiWidth() - 20 - mc.font.width(text) + BsbConfig.value(BsbConfig.HUD_X),
                 graphics.guiHeight() - 58 + BsbConfig.value(BsbConfig.HUD_Y),
                 TieredAmmoItem.color(type), true);
-    }
-    @SubscribeEvent
-    public static void boxTooltip(ItemTooltipEvent event) {
-        int tier = AmmoTransactions.boxTier(event.getItemStack());
-        if (tier > 1) {
-            event.getToolTip().add(Component.translatable("tooltip.tacz_bsb.box", Component.translatable("tooltip.tacz_bsb." + TieredAmmoItem.tierKey(tier))).withStyle(style -> style.withColor(TieredAmmoItem.color(tier))));
-        }
     }
     @EventBusSubscriber(modid = "tacz_bsb", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)
     public static final class ModEvents {

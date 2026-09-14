@@ -2,7 +2,6 @@
   "item.tacz_bsb.precise_ammo": "精密的%s",
   "tooltip.tacz_bsb.damage": "直接命中伤害 ×%s，爆炸伤害 ×%s",
   "tooltip.tacz_bsb.production": "流水线制造；保持原有伤害衰减",
-  "tooltip.tacz_bsb.box": "内含%s（不同等级弹药分开存放）",
   "hud.tacz_bsb.precise": "当前弹药：精密",
   "hud.tacz_bsb.normal": "当前弹药：普通",
   "hud.tacz_bsb.empty": "空仓",
