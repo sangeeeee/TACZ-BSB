@@ -12,17 +12,21 @@ import java.util.List;
 import java.util.Locale;
 
 public final class PreciseAmmoItem extends AmmoItem {
+    public static final int NAME_COLOR = 0xFF8800;
     @Override public boolean isFoil(ItemStack stack) { return true; }
     @Override @OnlyIn(Dist.CLIENT)
     public Component getName(ItemStack stack) {
-        return Component.translatable("item.tacz_bsb.precise_ammo", super.getName(stack));
+        // TaCZ translations embed section-sign colors; remove them so the full name stays orange.
+        String baseName = ChatFormatting.stripFormatting(super.getName(stack).getString());
+        return Component.translatable("item.tacz_bsb.precise_ammo", baseName)
+                .withStyle(style -> style.withColor(NAME_COLOR));
     }
     @Override @OnlyIn(Dist.CLIENT)
     public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> text, TooltipFlag flags) {
         String id = getAmmoId(stack).toString();
         text.add(Component.translatable("tooltip.tacz_bsb.damage",
                 String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, false)),
-                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, true))).withStyle(ChatFormatting.GOLD));
+                String.format(Locale.ROOT, "%.2f", BsbConfig.multiplier(id, true))).withStyle(style -> style.withColor(NAME_COLOR)));
         text.add(Component.translatable("tooltip.tacz_bsb.production").withStyle(ChatFormatting.GRAY));
         super.appendHoverText(stack, context, text, flags);
     }

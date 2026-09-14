@@ -5,6 +5,19 @@ import java.util.Random;
 import static org.junit.jupiter.api.Assertions.*;
 
 class AmmoLedgerTest {
+    @Test void nextRoundUsesTheWeaponFeedMechanism() {
+        var state = AmmoLedger.ordinary(0, true);
+        state.magazine.addLast(true, 1);
+        assertEquals(2, state.nextRound(true, false), "RPG must ignore the ordinary barrel marker");
+        assertEquals(1, state.nextRound(false, false), "closed bolt still fires the chamber first");
+        assertEquals(1, state.nextRound(false, true), "manual action still uses the chamber");
+        state.chamber = 0;
+        assertEquals(0, state.nextRound(false, true), "manual action requires chambering");
+        assertEquals(2, state.nextRound(false, false));
+        state.magazine.removeFirst();
+        state.chamber = 1;
+        assertEquals(0, state.nextRound(true, false), "barrel flag must not make an empty RPG look loaded");
+    }
     @Test void chamberFiresBeforeMixedMagazine() {
         var state = AmmoLedger.ordinary(1, true);
         state.reserve.addLast(true, 3);

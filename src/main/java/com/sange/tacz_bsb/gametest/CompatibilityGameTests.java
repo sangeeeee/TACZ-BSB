@@ -250,6 +250,54 @@ public final class CompatibilityGameTests {
         }
         test.succeed();
     }
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void rpgIgnoresNativeCreativeBarrelFlag(GameTestHelper test) {
+        var api = setup(test, "tacz:rpg7");
+        var player = (ServerPlayer)api.getShooter();
+        var gun = api.getAbstractGunItem();
+        var stack = api.getItemStack();
+        var data = IGunOperator.fromLivingEntity(player).getDataHolder();
+        gun.setBulletInBarrel(stack, true); // TaCZ creative-tab guns carry this flag, even for OPEN_BOLT.
+        test.assertValueEqual(AmmoState.read(stack, gun).total(), 0, "barrel flag is not a cartridge");
+        var bullets = new ArrayList<EntityKineticBullet>();
+        Consumer<EntityJoinLevelEvent> listener = event -> {
+            if (event.getEntity() instanceof EntityKineticBullet b && b.getOwner() == player) bullets.add(b);
+        };
+        NeoForge.EVENT_BUS.addListener(listener);
+        try {
+            for (boolean precise : new boolean[]{false, true}) {
+                player.getInventory().setItem(1, AmmoTransactions.stack(AmmoTransactions.ammoId(stack), precise, 1));
+                data.reloadStateType = com.tacz.guns.api.entity.ReloadState.StateType.EMPTY_RELOAD_FEEDING;
+                data.reloadTimestamp = System.currentTimeMillis();
+                gun.startReload(data, stack, player);
+                data.reloadTimestamp -= 10000;
+                gun.tickReload(data, stack, player);
+                // Exercise the current TaCZ flag without fabricating a separate chambered cartridge.
+                gun.setBulletInBarrel(stack, true);
+                var state = AmmoState.read(stack, gun);
+                test.assertValueEqual(state.total(), 1, "RPG reload contains exactly one rocket");
+                test.assertValueEqual(AmmoState.display(stack).nextRound(true, false), precise ? 2 : 1, "HUD reads magazine for RPG");
+                test.assertValueEqual(AmmoTransactions.peek(api), precise ? 2 : 1, "non-consuming shot quality");
+                api.shootOnce(false); // Creative/infinite shooting must use the same quality as survival/HUD.
+                test.assertValueEqual(AmmoState.read(stack, gun).total(), 1, "non-consuming shot retains rocket");
+                if (!precise) test.assertTrue(api.reduceAmmoOnce(), "consume ordinary rocket for next reload");
+            }
+        } finally { NeoForge.EVENT_BUS.unregister(listener); }
+        test.assertValueEqual(bullets.size(), 2, "two RPG projectiles");
+        float normal = bullets.get(0).getDamage(bullets.get(0).position());
+        test.assertTrue(Math.abs(bullets.get(1).getDamage(bullets.get(1).position()) - normal * 1.5f) < 0.001f, "RPG direct damage");
+        float explosion = ((BulletAccessor)bullets.get(0)).bsb$getExplosionDamage();
+        test.assertTrue(Math.abs(((BulletAccessor)bullets.get(1)).bsb$getExplosionDamage() - explosion * 1.5f) < 0.001f, "RPG explosive damage");
+        AmmoTransactions.unload(player, stack, true);
+        int returned = 0;
+        for (var item : player.getInventory().items) if (item.getItem() instanceof com.tacz.guns.api.item.IAmmo) {
+            test.assertTrue(AmmoTransactions.precise(item), "no phantom ordinary round on RPG unload");
+            returned += item.getCount();
+        }
+        test.assertValueEqual(returned, 1, "return only the real precise rocket");
+        for (var bullet : bullets) bullet.discard();
+        test.succeed();
+    }
     private static void checkDamage(GameTestHelper test, String gunId, boolean explosion, float directMultiplier, float explosionMultiplier) {
         var api = setup(test, gunId);
         var state = AmmoLedger.ordinary(api.getBolt() == com.tacz.guns.resource.pojo.data.gun.Bolt.OPEN_BOLT ? 1 : 0,

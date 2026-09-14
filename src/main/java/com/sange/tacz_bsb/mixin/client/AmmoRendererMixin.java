@@ -28,7 +28,7 @@ public abstract class AmmoRendererMixin {
     @WrapOperation(method = "lambda$renderByItem$0", at = @At(value = "INVOKE",
             target = "Lnet/minecraft/client/renderer/MultiBufferSource;getBuffer(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;"))
     private VertexConsumer bsb$glint(MultiBufferSource source, RenderType type, Operation<VertexConsumer> original) {
-        return AmmoGlint.wrap(source, original.call(source, type));
+        return AmmoGlint.wrap(source, original.call(source, type), true);
     }
 }
 

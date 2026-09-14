@@ -122,7 +122,7 @@ public final class AmmoTransactions {
     public static void chamber(ModernKineticGunScriptAPI api, boolean present) {
         ItemStack stack = api.getItemStack();
         AmmoLedger state = AmmoState.read(stack, api.getAbstractGunItem());
-        state.chamber(present, free(api));
+        if (api.getBolt() != Bolt.OPEN_BOLT) state.chamber(present, free(api));
         AmmoState.write(stack, api.getAbstractGunItem(), state);
     }
     /** 0 = dry fire, 1 = ordinary, 2 = precise. Called once per consumed cartridge. */
@@ -153,8 +153,8 @@ public final class AmmoTransactions {
     }
     public static int peek(ModernKineticGunScriptAPI api) {
         AmmoLedger state = AmmoState.read(api.getItemStack(), api.getAbstractGunItem());
-        if (state.chamber != 0) return state.chamber;
-        if (!state.magazine.isEmpty()) return state.magazine.peek() ? 2 : 1;
+        int next = state.nextRound(api.getBolt() == Bolt.OPEN_BOLT, api.getBolt() == Bolt.MANUAL_ACTION);
+        if (next != 0) return next;
         return 1; // Unbacked creative/infinite ammunition is ordinary.
     }
     public static void returnPending(LivingEntity owner, ItemStack stack) {

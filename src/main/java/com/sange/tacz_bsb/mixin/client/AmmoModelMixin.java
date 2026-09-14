@@ -15,7 +15,7 @@ public abstract class AmmoModelMixin {
     @WrapOperation(method = "render(Lcom/mojang/blaze3d/vertex/PoseStack;Lnet/minecraft/world/item/ItemDisplayContext;Lnet/minecraft/client/renderer/RenderType;IIFFFF)V", at = @At(value = "INVOKE", remap = true,
             target = "Lnet/minecraft/client/renderer/MultiBufferSource$BufferSource;getBuffer(Lnet/minecraft/client/renderer/RenderType;)Lcom/mojang/blaze3d/vertex/VertexConsumer;"))
     private VertexConsumer bsb$glint(MultiBufferSource.BufferSource source, RenderType type, Operation<VertexConsumer> original) {
-        return AmmoGlint.wrap(source, original.call(source, type));
+        return AmmoGlint.wrap(source, original.call(source, type), false);
     }
 }
 

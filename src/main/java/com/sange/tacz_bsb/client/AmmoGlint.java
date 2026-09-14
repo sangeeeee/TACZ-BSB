@@ -7,8 +7,8 @@ import net.minecraft.client.renderer.RenderType;
 
 public final class AmmoGlint {
     public static final ThreadLocal<Boolean> ACTIVE = ThreadLocal.withInitial(() -> false);
-    public static VertexConsumer wrap(MultiBufferSource source, VertexConsumer original) {
-        return ACTIVE.get() ? VertexMultiConsumer.create(source.getBuffer(RenderType.entityGlintDirect()), original) : original;
+    public static VertexConsumer wrap(MultiBufferSource source, VertexConsumer original, boolean itemIcon) {
+        return ACTIVE.get() ? VertexMultiConsumer.create(source.getBuffer(itemIcon ? RenderType.glint() : RenderType.entityGlintDirect()), original) : original;
     }
 }
 

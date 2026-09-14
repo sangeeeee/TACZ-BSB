@@ -10,7 +10,7 @@ import com.tacz.guns.config.client.RenderConfig;
 import com.tacz.guns.resource.pojo.data.gun.Bolt;
 import net.minecraft.client.Minecraft;
 import net.minecraft.network.chat.Component;
-import net.minecraft.ChatFormatting;
+import com.sange.tacz_bsb.item.PreciseAmmoItem;
 import net.neoforged.api.distmarker.Dist;
 import net.neoforged.bus.api.SubscribeEvent;
 import net.neoforged.fml.common.EventBusSubscriber;
@@ -30,12 +30,13 @@ public final class BsbClient {
         var index = TimelessAPI.getClientGunIndex(gun.getGunId(stack));
         if (index.isEmpty() || TimelessAPI.getGunDisplay(stack).isEmpty()) return;
         var state = AmmoState.display(stack);
-        int type = state == null ? (gun.hasBulletInBarrel(stack) ? 1 : 0) : state.chamber;
+        Bolt bolt = index.get().getGunData().getBolt();
+        int type = state == null ? (bolt != Bolt.OPEN_BOLT && gun.hasBulletInBarrel(stack) ? 1 : 0)
+                : state.nextRound(bolt == Bolt.OPEN_BOLT, bolt == Bolt.MANUAL_ACTION);
         String key;
-        if (type == 0 && index.get().getGunData().getBolt() == Bolt.MANUAL_ACTION
+        if (type == 0 && bolt == Bolt.MANUAL_ACTION
                 && gun.getCurrentAmmoCount(stack) > 0) key = "hud.tacz_bsb.unchambered";
         else {
-            if (type == 0 && state != null && !state.magazine.isEmpty()) type = state.magazine.peek() ? 2 : 1;
             if (type == 0 && gun.useInventoryAmmo(stack)) {
                 for (int slot = 0; slot < mc.player.getInventory().getContainerSize(); slot++) {
                     var ammo = mc.player.getInventory().getItem(slot);
@@ -55,12 +56,12 @@ public final class BsbClient {
         graphics.drawString(mc.font, text,
                 graphics.guiWidth() - 20 - mc.font.width(text) + BsbConfig.value(BsbConfig.HUD_X),
                 graphics.guiHeight() - 58 + BsbConfig.value(BsbConfig.HUD_Y),
-                type == 2 ? 0xFFD36B : 0xDDDDDD, true);
+                type == 2 ? PreciseAmmoItem.NAME_COLOR : 0xDDDDDD, true);
     }
     @SubscribeEvent
     public static void boxTooltip(ItemTooltipEvent event) {
         if (AmmoTransactions.preciseBox(event.getItemStack())) {
-            event.getToolTip().add(Component.translatable("tooltip.tacz_bsb.box").withStyle(ChatFormatting.GOLD));
+            event.getToolTip().add(Component.translatable("tooltip.tacz_bsb.box").withStyle(style -> style.withColor(PreciseAmmoItem.NAME_COLOR)));
         }
     }
     @EventBusSubscriber(modid = "tacz_bsb", value = Dist.CLIENT, bus = EventBusSubscriber.Bus.MOD)

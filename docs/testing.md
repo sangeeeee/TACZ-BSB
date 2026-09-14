@@ -1,5 +1,36 @@
 # 测试记录
 
+## 当前版本：NeoForge 1.0.0-beta
+
+内部版本为 `1.0.0-beta`，发行文件为 `build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。NeoForge 不接受以 `neoforge-` 开头的内部版本号，因此平台标识放在文件名中。
+
+按用户要求移除历史版本迁移/修复：不再忽略或清除旧组件中的伪弹膛，不再容忍已装弹组件缺少口径记录，移除未使用的数据版本标记。RPG 测试使用当前数据组件和 TaCZ 原生标记，不再构造旧版存档。
+
+当前 TaCZ 新物品初始化、正常存档读写、客户端同步，以及 RPG/光效/模型修复继续保留。项目开发约定已记录于根目录 `AGENTS.md`。
+
+验证命令：`./gradlew test runClientSmoke build --console=plain`。日志：`build/beta-validation.log`。结果：8 项 JUnit、9 项服务端 GameTest 和客户端自动检查全部通过，最终 BUILD SUCCESSFUL。
+
+下面的历史记录仅说明当时的实现与验证，不代表当前代码仍提供跨版本兼容。
+
+## 1.0.1 修复回归（2026-09-14）
+
+修复精密弹手持尺寸、GUI 变暗/附魔光效和 RPG 当前弹药显示三个问题。
+
+执行 `./gradlew test runClientSmoke build --console=plain`，结果 **BUILD SUCCESSFUL**。日志：`build/fix-validation.log`。
+
+- **8 项 JUnit 通过**：新增按枪机类型选择下一发弹药的测试，覆盖 RPG 忽略普通弹膛标记、空 RPG 不应显示有弹、闭膛和手动枪机仍优先弹膛。
+- **9 项服务端 GameTest 通过**：新增 RPG 原生换弹、TaCZ 创造栏遗留弹膛标记、1.0.0 已保存组件、免耗弹射击伤害及退弹数量回归。直接/爆炸伤害均为普通弹的 1.5 倍；卸载一发精密火箭弹只返还这一发。
+- **客户端回归通过**：24 种普通/精密弹逐对比较所有显示场景的旋转、位移、缩放与 GUI 光照属性；手持截图尺寸一致；RPG HUD 实际显示 `Ammo: Precise`。
+- **光效动画检查**：同一界面两帧截图中，24 个普通弹图标区域的变化像素数为 0，精密弹区域为 11,856，确认是动态光效而非暗色静态图标。并排截图中精密弹不再整体变暗。
+
+截图：[普通/精密弹并排](../build/client-smoke/screenshots/bsb-client-smoke.png)、[下一帧光效](../build/client-smoke/screenshots/bsb-glint-animation.png)、[普通弹手持](../build/client-smoke/screenshots/bsb-hand-normal.png)、[精密弹手持](../build/client-smoke/screenshots/bsb-hand-precise.png)、[RPG HUD](../build/client-smoke/screenshots/bsb-rpg-hud.png)。
+
+修复包：`build/libs/tacz_bsb-1.0.1.jar`。已确认模型继承 TaCZ 原模型、版本元数据正确，且不含游戏测试类。
+
+以下保留 1.0.0 的历史测试记录。当时的客户端检查没有进行普通/精密弹的并排对比，也未覆盖带遗留弹膛标记的 RPG，因而遗漏了上述问题。
+
+## 1.0.0 历史验证
+
 日期：2026-09-14。
 
 环境：Minecraft 1.21.1、NeoForge 21.1.248、TaCZ 1.1.8-hotfix-r6、Create: TaCZ 1.0.2、Create 6.0.10，Windows / JDK 21。

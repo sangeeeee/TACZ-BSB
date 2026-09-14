@@ -49,6 +49,12 @@ public final class AmmoLedger {
             else if (free) chamber = 1;
         }
     }
+    /** Shared by the HUD and non-consuming shots; open-bolt guns ignore the barrel marker. */
+    public int nextRound(boolean openBolt, boolean manual) {
+        if (!openBolt && chamber != 0) return chamber;
+        if (manual || magazine.isEmpty()) return 0;
+        return magazine.peek() ? 2 : 1;
+    }
     /** Returns fired type, zero for dry fire. */
     public int fire(boolean openBolt, boolean manual) {
         if (manual) {

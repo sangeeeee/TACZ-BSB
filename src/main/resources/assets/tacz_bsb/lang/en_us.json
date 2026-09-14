@@ -1,9 +1,9 @@
 {
-  "item.tacz_bsb.precise_ammo": "Precise %s",
+  "item.tacz_bsb.precise_ammo": "Improved %s",
   "tooltip.tacz_bsb.damage": "Direct damage ×%s; explosion damage ×%s",
-  "tooltip.tacz_bsb.production": "Precision manufactured; original damage falloff",
-  "tooltip.tacz_bsb.box": "Contains precise ammunition (store separately from normal rounds)",
-  "hud.tacz_bsb.precise": "Ammo: Precise",
+  "tooltip.tacz_bsb.production": "Assembly-line manufactured; original damage falloff",
+  "tooltip.tacz_bsb.box": "Contains improved ammunition (store separately from normal rounds)",
+  "hud.tacz_bsb.precise": "Ammo: Improved",
   "hud.tacz_bsb.normal": "Ammo: Normal",
   "hud.tacz_bsb.empty": "Empty",
   "hud.tacz_bsb.unchambered": "Not chambered",
