@@ -2,7 +2,6 @@
 Usage: python tools/generate_precise_recipes.py path/to/create-tacz.jar
 No runtime dependency on this script or on the original jar's filesystem location.
 """
-import copy
 import json
 import re
 import sys
@@ -82,17 +81,13 @@ for name in ['rpg_warhead_recipe', 'rpg_sustainer_motor_recipe', 'rpg_booster_ch
     recipes['precise_' + name] = replace(source[name], high | parts | {'minecraft:gunpowder': explosive})
 
 # Dedicated transitions prevent partially processed items from entering another tier's recipe.
-# Start charging with high-energy powder, so the deployer's held ingredient selects the tier.
-def assembly(original, mapping, transitional, high_first=False):
+# Preserve every original operation in place; the deployer event handles shared-prefix branching.
+def assembly(original, mapping, transitional):
     d = replace(original, mapping)
     d['transitional_item'] = {'id': transitional}
     for step in d['sequence']:
         step['ingredients'][0] = {'item': transitional}
         step['results'] = [{'id': transitional}]
-    if high_first:
-        first = next(i for i, step in enumerate(d['sequence'])
-                     if len(step['ingredients']) > 1 and step['ingredients'][1].get('item') in high.values())
-        d['sequence'].insert(0, d['sequence'].pop(first))
     return d
 
 calibers = sorted(n.removeprefix('bullet_').removesuffix('_cap') for n in source
@@ -109,26 +104,37 @@ for caliber in calibers:
     finishing = material('unfinished_precise_' + caliber, 'tacz_c:unfinished_' + caliber,
                          f'加工中的精密{display_caliber}弹药', f'Unfinished Precise {display_caliber} Ammunition')
     recipes['high_bullet_' + caliber] = assembly(source['bullet_' + caliber],
-                                                high | hardened | {old_case: prepared}, charging, high_first=True)
+                                                high | hardened | {old_case: prepared}, charging)
     recipes['precise_bullet_' + caliber + '_cap'] = assembly(source['bullet_' + caliber + '_cap'],
         high | hardened | {old_case: prepared, 'tacz:ammo': 'tacz_bsb:precise_ammo'}, finishing)
 
 transitional = material('unfinished_precise_fuseless_40mm', 'tacz_c:booster_charge_40mm',
                        '加工中的精密40mm无引信榴弹', 'Unfinished Precise Fuseless 40mm Grenade')
 recipes['precise_grenade_booster_charge_40mm'] = assembly(source['grenade_booster_charge_40mm'],
-                                                        high | parts, transitional, high_first=True)
+                                                        high | parts, transitional)
 for name, base, zh in [('rpg_rocket_assembly','unfinished_rpg_rocket','加工中的精密RPG-7火箭弹'),
                        ('grenade_40mm_assembly','unfinished_40mm','加工中的精密40mm榴弹')]:
     transitional = material('unfinished_precise_' + base.removeprefix('unfinished_'), 'tacz_c:' + base,
                            zh, 'Unfinished Precise ' + ('RPG-7 Rocket' if 'rpg' in name else '40mm Grenade'))
     recipes['precise_' + name] = assembly(source[name], parts | {'tacz:ammo': 'tacz_bsb:precise_ammo'}, transitional)
 
+# Hide both our work-in-progress items and the original Create TaCZ unfinished items.
+hidden = ['tacz_bsb:' + name for name in materials if name.startswith('unfinished_')]
+hidden += ['tacz_c:' + name.removeprefix('item.tacz_c.') for name in base_en
+           if name.startswith('item.tacz_c.unfinished_')]
+save(RES / 'data/c/tags/item/hidden_from_recipe_viewers.json', {'replace': False, 'values': hidden})
+
+pairs = [('tacz_c:bullet_' + c, 'tacz_bsb:high_bullet_' + c) for c in calibers]
+pairs.append(('tacz_c:grenade_booster_charge_40mm', 'tacz_bsb:precise_grenade_booster_charge_40mm'))
+entries = ',\n'.join(f'            Map.entry(ResourceLocation.parse("{a}"), ResourceLocation.parse("{b}"))' for a,b in pairs)
+(JAVA / 'recipe/AssemblyPairs.java').write_text('package com.sange.tacz_bsb.recipe;\n\nimport net.minecraft.resources.ResourceLocation;\nimport java.util.Map;\n\n/** Generated default production families; unrelated datapack recipes are never interchangeable. */\npublic final class AssemblyPairs {\n    public static final Map<ResourceLocation, ResourceLocation> PAIRS = Map.ofEntries(\n' + entries + ');\n    public static ResourceLocation other(ResourceLocation id) {\n        ResourceLocation direct = PAIRS.get(id);\n        if (direct != null) return direct;\n        for (var entry : PAIRS.entrySet()) if (entry.getValue().equals(id)) return entry.getKey();\n        return null;\n    }\n}\n', encoding='utf-8')
+
 for name, data in recipes.items(): save(RES / f'data/tacz_bsb/recipe/{name}.json', data)
 for code, entries in langs.items(): save(RES / f'assets/tacz_bsb/lang/{code}.json', entries)
 for tier in ['improved', 'precise']:
     save(RES / f'assets/tacz_bsb/models/item/{tier}_ammo.json', {'parent': 'tacz:item/ammo'})
 
-# Every material, including unfinished assemblies, is visible in the Create TaCZ tab.
+# Only completed materials are listed in creative tabs; unfinished items remain registered for processing.
 lines = '\n'.join(f'        add("{name}");' for name in materials)
 (JAVA / 'BsbMaterials.java').write_text('''package com.sange.tacz_bsb;
 

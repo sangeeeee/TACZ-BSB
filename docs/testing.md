@@ -1,5 +1,17 @@
 # 测试记录
 
+## 装配顺序及加工中物品隐藏修复（2026-09-14）
+
+- 逐条对照锁定的 Create: TaCZ 原配方，恢复 22 种常规弹药装药链和 40mm 装药链的原工序，共 23 条修改。独立审计脚本核对全部 47 条新增序列的顺序、投入数量、机器参数、循环次数及最终产量。
+- 9 项单元测试和 12 项服务端 GameTest 通过。所有新增产线通过实际 Create 序列接口及机械手配方事件执行；额外对 23 对产线强制从另一分支的共同步骤开始，双向接续至成品，并验证投入不同火药后不再允许切换分支。
+- 实际安装 JEI 19.21.0.247 的客户端检查通过。76 个加工中物品（本模组 47、原 Create: TaCZ 29）不可见；JEI 空搜索、`unfinished`、`加工中`、`@tacz_bsb` 搜索结果均不含加工中物品。创造栏及创造模式搜索同样排除，38 个正常新材料仍可见。
+- 本次未新增 Create Mixin；使用公开的机械手配方事件及标准隐藏标签。
+
+命令：`python tools/check_assembly_order.py build/compat-analysis/create-tacz-current.jar`、`gradlew test runGameTestServer`、`gradlew runClientSmoke -x runGameTestServer -PjeiSmoke`。
+
+日志：[服务端](../build/order-validation.log)、[带 JEI 客户端](../build/order-client-validation.log)。下面是此前实现的历史测试记录。
+
+
 ## 三档弹药与精密产线（2026-09-14）
 
 当前发布版本仍为 NeoForge `1.0.0-beta`。本节记录本次新增精密弹药后的验证；下文为历史记录。

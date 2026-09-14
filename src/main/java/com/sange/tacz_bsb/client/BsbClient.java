@@ -70,8 +70,12 @@ public final class BsbClient {
         @SubscribeEvent
         public static void creative(BuildCreativeModeTabContentsEvent event) {
             if (event.getTabKey().location().toString().equals("tacz_c:timeless_and_classics_zero_creatified")) {
-                com.sange.tacz_bsb.BsbMaterials.ITEMS.values().forEach(event::accept);
+                com.sange.tacz_bsb.BsbMaterials.ITEMS.values().stream()
+                        .filter(item -> !AssemblyVisibility.hidden(item.get().getDefaultInstance())).forEach(event::accept);
             }
+            java.util.stream.Stream.concat(event.getParentEntries().stream(), event.getSearchEntries().stream())
+                    .filter(AssemblyVisibility::hidden).toList()
+                    .forEach(stack -> event.remove(stack, net.minecraft.world.item.CreativeModeTab.TabVisibility.PARENT_AND_SEARCH_TABS));
             if (!event.getTabKey().equals(ModCreativeTabs.AMMO_TAB.getKey())) return;
             TimelessAPI.getAllCommonAmmoIndex().stream()
                     .sorted(java.util.Comparator.comparingInt(e -> e.getValue().getSort()))

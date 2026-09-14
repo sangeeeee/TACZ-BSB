@@ -67,11 +67,9 @@ public final class CompatibilityGameTests {
                     var slots = new net.neoforged.neoforge.items.ItemStackHandler(2);
                     slots.setStackInSlot(0, input);
                     slots.setStackInSlot(1, step.getIngredients().get(1).getItems()[0].copyWithCount(1));
-                    var chosen = SequencedAssemblyRecipe.getRecipe(test.getLevel(),
-                            new net.neoforged.neoforge.items.wrapper.RecipeWrapper(slots),
-                            com.simibubi.create.AllRecipeTypes.DEPLOYING.getType(),
-                            com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe.class).orElseThrow();
-                    test.assertValueEqual(chosen.id(), holder.id(), "deployer selects correct tier: " + holder.id() + " step " + i);
+                    var chosen = deploy(test, new net.neoforged.neoforge.items.wrapper.RecipeWrapper(slots));
+                    test.assertTrue(chosen.id().equals(holder.id()) || holder.id().equals(com.sange.tacz_bsb.recipe.AssemblyPairs.other(chosen.id())),
+                            "deployer stays within the same ammunition family: " + holder.id());
                     selected = chosen.value();
                 } else {
                     var chosen = SequencedAssemblyRecipe.getRecipe(test.getLevel(), input,
@@ -93,6 +91,56 @@ public final class CompatibilityGameTests {
         test.assertValueEqual(com.sange.tacz_bsb.BsbMaterials.ITEMS.size(), 85, "registered materials");
         for (var entry : com.sange.tacz_bsb.BsbMaterials.ITEMS.values())
             test.assertTrue(entry.get().getDefaultInstance().hasFoil(), "material glint");
+        test.succeed();
+    }
+    private static net.minecraft.world.item.crafting.RecipeHolder<com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe> deploy(
+            GameTestHelper test, net.neoforged.neoforge.items.wrapper.RecipeWrapper slots) {
+        var block = new com.simibubi.create.content.kinetics.deployer.DeployerBlockEntity(
+                net.minecraft.core.registries.BuiltInRegistries.BLOCK_ENTITY_TYPE.get(ResourceLocation.parse("create:deployer")), net.minecraft.core.BlockPos.ZERO,
+                net.minecraft.core.registries.BuiltInRegistries.BLOCK.get(ResourceLocation.parse("create:deployer")).defaultBlockState());
+        ((net.minecraft.world.level.block.entity.BlockEntity) block).setLevel(test.getLevel());
+        var event = new com.simibubi.create.content.kinetics.deployer.DeployerRecipeSearchEvent(block, slots);
+        event.addRecipe(() -> SequencedAssemblyRecipe.getRecipe(test.getLevel(), slots,
+                com.simibubi.create.AllRecipeTypes.DEPLOYING.getType(),
+                com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe.class), 100);
+        NeoForge.EVENT_BUS.post(event);
+        var selected = event.getRecipe();
+        if (selected == null) throw new IllegalStateException("No deployer recipe for " + slots.getItem(0) + " / " + slots.getItem(1));
+        return new net.minecraft.world.item.crafting.RecipeHolder<>(selected.id(),
+                (com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe) selected.value());
+    }
+    @GameTest(template = "empty", timeoutTicks = 200)
+    public static void assemblyBranchesLockAfterPowder(GameTestHelper test) {
+        for (var pair : com.sange.tacz_bsb.recipe.AssemblyPairs.PAIRS.entrySet()) {
+            for (boolean high : new boolean[]{false, true}) {
+                var targetId = high ? pair.getValue() : pair.getKey();
+                var sourceId = high ? pair.getKey() : pair.getValue();
+                var source = (SequencedAssemblyRecipe) test.getLevel().getRecipeManager().byKey(sourceId).orElseThrow().value();
+                var target = (SequencedAssemblyRecipe) test.getLevel().getRecipeManager().byKey(targetId).orElseThrow().value();
+                // Force the shared first operation down the opposite branch, independently of recipe iteration order.
+                ItemStack input = source.getTransitionalItem().copyWithCount(1);
+                input.set(com.simibubi.create.AllDataComponents.SEQUENCED_ASSEMBLY,
+                        new SequencedAssemblyRecipe.SequencedAssembly(sourceId, 1, 1f / source.getSequence().size()));
+                for (int step = 1; step < target.getSequence().size(); step++) {
+                    var slots = new net.neoforged.neoforge.items.ItemStackHandler(2);
+                    slots.setStackInSlot(0, input);
+                    slots.setStackInSlot(1, target.getSequence().get(step).getRecipe().getIngredients().get(1).getItems()[0].copyWithCount(1));
+                    var inv = new net.neoforged.neoforge.items.wrapper.RecipeWrapper(slots);
+                    var selected = deploy(test, inv);
+                    input = selected.value().rollResults(test.getLevel().random).getFirst();
+                    if (selected.id().equals(targetId) && input.has(com.simibubi.create.AllDataComponents.SEQUENCED_ASSEMBLY)) {
+                        // Once the first differing powder was consumed, changing the next held powder cannot switch back.
+                        slots.setStackInSlot(0, input);
+                        int next = step + 1;
+                        if (next < source.getSequence().size()) {
+                            slots.setStackInSlot(1, source.getSequence().get(next).getRecipe().getIngredients().get(1).getItems()[0].copyWithCount(1));
+                            test.assertTrue(com.sange.tacz_bsb.recipe.AssemblyBranching.alternate(test.getLevel(), inv).isEmpty(), "no mixed-powder upgrade: " + targetId);
+                        }
+                    }
+                }
+                test.assertTrue(ItemStack.matches(input, target.getResultItem(test.getLevel().registryAccess())), "branch output: " + targetId);
+            }
+        }
         test.succeed();
     }
     @GameTest(template = "empty", timeoutTicks = 200)

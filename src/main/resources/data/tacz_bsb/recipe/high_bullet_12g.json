@@ -17,22 +17,6 @@
           "item": "tacz_bsb:unfinished_high_casefull_12g"
         },
         {
-          "item": "tacz_bsb:high_gunpowder_pellets"
-        }
-      ],
-      "results": [
-        {
-          "id": "tacz_bsb:unfinished_high_casefull_12g"
-        }
-      ]
-    },
-    {
-      "type": "create:deploying",
-      "ingredients": [
-        {
-          "item": "tacz_bsb:unfinished_high_casefull_12g"
-        },
-        {
           "item": "tacz_c:shell_case"
         }
       ],
@@ -50,6 +34,22 @@
         },
         {
           "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_high_casefull_12g"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_12g"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
         }
       ],
       "results": [

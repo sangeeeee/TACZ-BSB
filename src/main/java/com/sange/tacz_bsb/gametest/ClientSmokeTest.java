@@ -49,8 +49,13 @@ public final class ClientSmokeTest {
             var createTab = net.minecraft.core.registries.BuiltInRegistries.CREATIVE_MODE_TAB.get(
                     net.minecraft.resources.ResourceLocation.parse("tacz_c:timeless_and_classics_zero_creatified"));
             for (var item : com.sange.tacz_bsb.BsbMaterials.ITEMS.values()) {
-                if (createTab.getDisplayItems().stream().noneMatch(stack -> stack.is(item.get())))
-                    throw new IllegalStateException("Material missing from Create TaCZ creative tab: " + item.getId());
+                boolean hidden = com.sange.tacz_bsb.client.AssemblyVisibility.hidden(item.get().getDefaultInstance());
+                if (createTab.getDisplayItems().stream().anyMatch(stack -> stack.is(item.get())) == hidden)
+                    throw new IllegalStateException("Incorrect material visibility: " + item.getId());
+                if (hidden && net.minecraft.world.item.CreativeModeTabs.searchTab().getDisplayItems().stream().anyMatch(stack -> stack.is(item.get())))
+                    throw new IllegalStateException("Unfinished material appears in creative search: " + item.getId());
+                if (hidden && !item.get().getDefaultInstance().is(net.minecraft.tags.TagKey.create(net.minecraft.core.registries.Registries.ITEM, net.minecraft.resources.ResourceLocation.parse("c:hidden_from_recipe_viewers"))))
+                    throw new IllegalStateException("Missing recipe viewer hide tag: " + item.getId());
                 var stack = item.get().getDefaultInstance();
                 if (mc.getItemRenderer().getModel(stack, mc.level, mc.player, 0) == mc.getModelManager().getMissingModel())
                     throw new IllegalStateException("Missing material model: " + item.getId());
@@ -120,6 +125,8 @@ public final class ClientSmokeTest {
         if (started && ticks == 290) Screenshot.grab(mc.gameDirectory, "bsb-hand-normal.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 360) Screenshot.grab(mc.gameDirectory, "bsb-hand-precise.png", mc.getMainRenderTarget(), message -> {});
         if (started && ticks == 400) {
+            if (net.neoforged.fml.ModList.get().isLoaded("jei") && !JeiSmokeTest.passed)
+                throw new IllegalStateException("JEI visibility verification did not complete");
             System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 85 material models, state sync, RPG HUD and held ammo checked");
             mc.stop();
         }

@@ -17,7 +17,7 @@
           "item": "tacz_bsb:unfinished_high_casefull_9mm"
         },
         {
-          "item": "tacz_bsb:high_gunpowder_grains"
+          "item": "tacz_c:primer"
         }
       ],
       "results": [
@@ -33,7 +33,7 @@
           "item": "tacz_bsb:unfinished_high_casefull_9mm"
         },
         {
-          "item": "tacz_c:primer"
+          "item": "tacz_bsb:high_gunpowder_grains"
         }
       ],
       "results": [
