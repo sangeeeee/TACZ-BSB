@@ -21,8 +21,11 @@ public final class BsbMaterials {
         add("high_gunpowder_grains");
         add("high_explosive");
         add("hardened_bullet");
+        add("unfinished_hardened_bullet");
         add("hardened_large_bullet");
+        add("unfinished_hardened_large_bullet");
         add("hardened_pellets");
+        add("unfinished_hardened_pellets");
         add("precise_rpg_warhead");
         add("precise_rpg_sustainer_motor");
         add("precise_rpg_booster_charge");

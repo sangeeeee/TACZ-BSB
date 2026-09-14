@@ -97,5 +97,8 @@
   "tooltip.tacz_bsb.precise": "Precise Ammunition",
   "hud.tacz_bsb.improved": "Ammo: Improved",
   "item.tacz_bsb.improved_universal_ammo_box": "Improved Universal Creative Ammo Box",
-  "item.tacz_bsb.precise_universal_ammo_box": "Precise Universal Creative Ammo Box"
+  "item.tacz_bsb.precise_universal_ammo_box": "Precise Universal Creative Ammo Box",
+  "item.tacz_bsb.unfinished_hardened_bullet": "Unfinished Hardened Small Cartridge Bullet",
+  "item.tacz_bsb.unfinished_hardened_large_bullet": "Unfinished Hardened Large Cartridge Bullet",
+  "item.tacz_bsb.unfinished_hardened_pellets": "Unfinished Hardened Metal Pellets"
 }

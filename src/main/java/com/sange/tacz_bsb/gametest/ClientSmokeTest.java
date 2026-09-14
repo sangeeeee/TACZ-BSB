@@ -143,7 +143,7 @@ public final class ClientSmokeTest {
         if (started && ticks == 400) {
             if (net.neoforged.fml.ModList.get().isLoaded("jei") && !JeiSmokeTest.passed)
                 throw new IllegalStateException("JEI visibility verification did not complete");
-            System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 85 material models, state sync, RPG HUD and held ammo checked");
+            System.out.println("BSB_CLIENT_SMOKE_PASSED: 24 three-tier icon sets rendered, equal model transforms/lighting, creative tabs, 88 material models, state sync, RPG HUD and held ammo checked");
             mc.stop();
         }
     }
@@ -202,7 +202,7 @@ public final class ClientSmokeTest {
         MaterialsPreview() { super(Component.literal("BSB materials")); }
         @Override public void render(GuiGraphics graphics, int mouseX, int mouseY, float partialTick) {
             graphics.fill(0, 0, width, height, 0xFF20242A);
-            graphics.drawString(font, "85 glint materials / 38 stackable / 47 assembly intermediates", 12, 8, 0xFFFFFF);
+            graphics.drawString(font, "88 glint materials / 38 stackable / 50 assembly intermediates", 12, 8, 0xFFFFFF);
             int i = 0;
             for (var item : com.sange.tacz_bsb.BsbMaterials.ITEMS.values()) {
                 int x = 12 + (i % 15) * 26, y = 35 + (i / 15) * 26;

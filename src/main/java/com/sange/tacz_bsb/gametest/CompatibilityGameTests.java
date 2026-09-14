@@ -62,6 +62,19 @@ public final class CompatibilityGameTests {
             ItemStack input = recipe.getIngredient().getItems()[0].copyWithCount(1);
             for (int i = 0; i < recipe.getLoops() * recipe.getSequence().size(); i++) {
                 var step = recipe.getSequence().get(i % recipe.getSequence().size()).getRecipe();
+                if (step.getType() == com.simibubi.create.AllRecipeTypes.FILLING.getType()) {
+                    var fluid = new net.neoforged.neoforge.fluids.FluidStack(
+                            i == 0 ? net.minecraft.world.level.material.Fluids.LAVA : net.minecraft.world.level.material.Fluids.WATER, 100);
+                    var wrongFluid = new net.neoforged.neoforge.fluids.FluidStack(
+                            i == 0 ? net.minecraft.world.level.material.Fluids.WATER : net.minecraft.world.level.material.Fluids.LAVA, 100);
+                    test.assertValueEqual(com.simibubi.create.content.fluids.spout.FillingBySpout.getRequiredAmountForItem(
+                            test.getLevel(), input, wrongFluid), -1, "wrong fluid rejected");
+                    int required = com.simibubi.create.content.fluids.spout.FillingBySpout.getRequiredAmountForItem(test.getLevel(), input, fluid);
+                    test.assertValueEqual(required, 100, "hardening fluid amount");
+                    input = com.simibubi.create.content.fluids.spout.FillingBySpout.fillItem(test.getLevel(), required, input, fluid);
+                    test.assertValueEqual(fluid.getAmount(), 0, "spout consumes fluid");
+                    continue;
+                }
                 com.simibubi.create.content.processing.recipe.ProcessingRecipe<?, ?> selected;
                 if (step instanceof com.simibubi.create.content.kinetics.deployer.DeployerApplicationRecipe) {
                     var slots = new net.neoforged.neoforge.items.ItemStackHandler(2);
@@ -86,9 +99,9 @@ public final class CompatibilityGameTests {
             if (input.is(BsbContent.PRECISE_AMMO.get())) ammo++;
         }
         test.assertValueEqual(recipes, 64, "all new recipes loaded");
-        test.assertValueEqual(assemblies, 47, "all precise assembly chains");
+        test.assertValueEqual(assemblies, 50, "all precise assembly chains");
         test.assertValueEqual(ammo, 24, "all precise final ammunition outputs");
-        test.assertValueEqual(com.sange.tacz_bsb.BsbMaterials.ITEMS.size(), 85, "registered materials");
+        test.assertValueEqual(com.sange.tacz_bsb.BsbMaterials.ITEMS.size(), 88, "registered materials");
         for (var entry : com.sange.tacz_bsb.BsbMaterials.ITEMS.values())
             test.assertTrue(entry.get().getDefaultInstance().hasFoil(), "material glint");
         test.succeed();

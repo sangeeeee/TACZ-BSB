@@ -1,0 +1,67 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:bullet"
+  },
+  "transitional_item": {
+    "id": "tacz_bsb:unfinished_hardened_bullet"
+  },
+  "loops": 1,
+  "sequence": [
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_bullet"
+        },
+        {
+          "type": "neoforge:single",
+          "amount": 100,
+          "fluid": "minecraft:lava"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_hardened_bullet"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_bullet"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_hardened_bullet"
+        }
+      ]
+    },
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_bullet"
+        },
+        {
+          "type": "neoforge:single",
+          "amount": 100,
+          "fluid": "minecraft:water"
+        }
+      ],
+      "results": [
+        {
+          "id": "tacz_bsb:unfinished_hardened_bullet"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "id": "tacz_bsb:hardened_bullet",
+      "count": 1
+    }
+  ]
+}

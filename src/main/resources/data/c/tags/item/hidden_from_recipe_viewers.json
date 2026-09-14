@@ -1,6 +1,9 @@
 {
   "replace": false,
   "values": [
+    "tacz_bsb:unfinished_hardened_bullet",
+    "tacz_bsb:unfinished_hardened_large_bullet",
+    "tacz_bsb:unfinished_hardened_pellets",
     "tacz_bsb:unfinished_high_casefull_12g",
     "tacz_bsb:unfinished_precise_12g",
     "tacz_bsb:unfinished_high_casefull_22wmr",

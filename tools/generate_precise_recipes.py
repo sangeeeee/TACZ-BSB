@@ -24,7 +24,7 @@ def save(path, obj):
     path.parent.mkdir(parents=True, exist_ok=True)
     path.write_text(json.dumps(obj, ensure_ascii=False, indent=2) + '\n', encoding='utf-8')
 
-def material(name, base, zh, en=None):
+def material(name, base, en=None):
     assert name not in materials
     materials[name] = base
     namespace, path = base.split(':')
@@ -34,7 +34,8 @@ def material(name, base, zh, en=None):
         original = re.sub(r'§.', '', base_en[f'item.{namespace}.{path}'])
         en = ('High-Energy ' if name.startswith('high_') else 'Hardened ' if name.startswith('hardened_') else 'Precise ') + original
     langs['en_us'][f'item.tacz_bsb.{name}'] = en
-    langs['zh_cn'][f'item.tacz_bsb.{name}'] = zh
+    # Maintain Chinese terminology directly in zh_cn.json.
+    assert f'item.tacz_bsb.{name}' in langs['zh_cn'], f'Missing Chinese translation: {name}'
     return 'tacz_bsb:' + name
 
 def replace(data, mapping):
@@ -44,11 +45,9 @@ def replace(data, mapping):
     return data
 
 high = {}
-for base, zh in [('gunpowder_cake','高能火药饼'), ('gunpowder_cake_dry','高能干燥火药饼'),
-                 ('gunpowder_cylinder','高能火药柱'), ('gunpowder_charge','高能发射药'),
-                 ('gunpowder_pellets','高能火药丸'), ('gunpowder_grains','高能火药颗粒')]:
-    high['tacz_c:' + base] = material('high_' + base, 'tacz_c:' + base, zh)
-explosive = material('high_explosive', 'minecraft:gunpowder', '高能炸药', 'High-Energy Explosive')
+for base in ['gunpowder_cake', 'gunpowder_cake_dry', 'gunpowder_cylinder', 'gunpowder_charge', 'gunpowder_pellets', 'gunpowder_grains']:
+    high['tacz_c:' + base] = material('high_' + base, 'tacz_c:' + base)
+explosive = material('high_explosive', 'minecraft:gunpowder', 'High-Energy Explosive')
 recipes['high_explosive_mixing'] = {
     'type': 'create:mixing',
     'ingredients': [{'item': v} for v in ['create:powdered_obsidian', 'minecraft:blaze_powder',
@@ -60,22 +59,29 @@ for name in ['gunpowder_cake_mix', 'gunpowder_cake_drying', 'gunpowder_cylinder_
              'gunpowder_grains_recipe', 'gunpowder_pellets_recipe']:
     d = replace(source[name], high)
     if name == 'gunpowder_cake_mix':
-        d['ingredients'] += [{'item': 'create:rose_quartz'}, {'item': 'create:rose_quartz'}]
+        d['ingredients'] += [{'item': 'create:rose_quartz'}]
         d['heat_requirement'] = 'heated'
     recipes['high_' + name] = d
 
 hardened = {}
-for base, zh in [('bullet','硬化小型弹头'), ('large_bullet','硬化大型弹头'), ('pellets','硬化金属弹丸')]:
-    hardened['tacz_c:' + base] = material('hardened_' + base, 'tacz_c:' + base, zh)
-    recipes['hardened_' + base + '_smelting'] = {'type': 'minecraft:smelting', 'category': 'misc',
-        'ingredient': {'item': 'tacz_c:' + base}, 'result': {'id': hardened['tacz_c:' + base], 'count': 1},
-        'experience': 0.1, 'cookingtime': 200}
+for base in ['bullet', 'large_bullet', 'pellets']:
+    hardened['tacz_c:' + base] = material('hardened_' + base, 'tacz_c:' + base)
+    transition = material('unfinished_hardened_' + base, 'tacz_c:' + base, 'Unfinished ' + langs['en_us']['item.tacz_bsb.hardened_' + base])
+    sequence = []
+    for fluid in ['minecraft:lava', None, 'minecraft:water']:
+        ingredients = [{'item': transition}]
+        if fluid:
+            ingredients.append({'type': 'neoforge:single', 'amount': 100, 'fluid': fluid})
+        sequence.append({'type': 'create:filling' if fluid else 'create:pressing',
+                         'ingredients': ingredients, 'results': [{'id': transition}]})
+    recipes['hardened_' + base + '_assembly'] = {
+        'type': 'create:sequenced_assembly', 'ingredient': {'item': 'tacz_c:' + base},
+        'transitional_item': {'id': transition}, 'loops': 1, 'sequence': sequence,
+        'results': [{'id': hardened['tacz_c:' + base], 'count': 1}]}
 
 parts = {}
-for base, zh in [('rpg_warhead','精密的RPG-7战斗部'), ('rpg_sustainer_motor','精密的RPG-7发动机'),
-                 ('rpg_booster_charge','精密的RPG-7发射药'), ('explosive_charge_40mm','精密的40mm榴弹炸药装药'),
-                 ('fuse_40mm','精密的40mm榴弹引信'), ('fuseless_40mm','精密的40mm无引信榴弹')]:
-    parts['tacz_c:' + base] = material('precise_' + base, 'tacz_c:' + base, zh)
+for base in ['rpg_warhead', 'rpg_sustainer_motor', 'rpg_booster_charge', 'explosive_charge_40mm', 'fuse_40mm', 'fuseless_40mm']:
+    parts['tacz_c:' + base] = material('precise_' + base, 'tacz_c:' + base)
 for name in ['rpg_warhead_recipe', 'rpg_sustainer_motor_recipe', 'rpg_booster_charge_recipe',
              'grenade_explosive_charge_40mm', 'grenade_fuse_40mm']:
     recipes['precise_' + name] = replace(source[name], high | parts | {'minecraft:gunpowder': explosive})
@@ -97,25 +103,20 @@ for caliber in calibers:
     old_case = 'tacz_c:casefull_' + caliber
     display_caliber = re.sub(r'§.', '', base_en['item.tacz_c.casefull_' + caliber])
     display_caliber = display_caliber.removeprefix('Prepared ').removesuffix(' Bullet Casing')
-    prepared = material('high_casefull_' + caliber, old_case, f'高能{display_caliber}已装药弹壳')
+    prepared = material('high_casefull_' + caliber, old_case)
     charging = material('unfinished_high_casefull_' + caliber,
-                        'tacz_c:unfinished_casefull_12g' if caliber == '12g' else old_case,
-                        f'加工中的高能{display_caliber}已装药弹壳', f'Unfinished High-Energy {display_caliber} Prepared Casing')
-    finishing = material('unfinished_precise_' + caliber, 'tacz_c:unfinished_' + caliber,
-                         f'加工中的精密{display_caliber}弹药', f'Unfinished Precise {display_caliber} Ammunition')
+                        'tacz_c:unfinished_casefull_12g' if caliber == '12g' else old_case, f'Unfinished High-Energy {display_caliber} Prepared Casing')
+    finishing = material('unfinished_precise_' + caliber, 'tacz_c:unfinished_' + caliber, f'Unfinished Precise {display_caliber} Ammunition')
     recipes['high_bullet_' + caliber] = assembly(source['bullet_' + caliber],
                                                 high | hardened | {old_case: prepared}, charging)
     recipes['precise_bullet_' + caliber + '_cap'] = assembly(source['bullet_' + caliber + '_cap'],
         high | hardened | {old_case: prepared, 'tacz:ammo': 'tacz_bsb:precise_ammo'}, finishing)
 
-transitional = material('unfinished_precise_fuseless_40mm', 'tacz_c:booster_charge_40mm',
-                       '加工中的精密40mm无引信榴弹', 'Unfinished Precise Fuseless 40mm Grenade')
+transitional = material('unfinished_precise_fuseless_40mm', 'tacz_c:booster_charge_40mm', 'Unfinished Precise Fuseless 40mm Grenade')
 recipes['precise_grenade_booster_charge_40mm'] = assembly(source['grenade_booster_charge_40mm'],
                                                         high | parts, transitional)
-for name, base, zh in [('rpg_rocket_assembly','unfinished_rpg_rocket','加工中的精密RPG-7火箭弹'),
-                       ('grenade_40mm_assembly','unfinished_40mm','加工中的精密40mm榴弹')]:
-    transitional = material('unfinished_precise_' + base.removeprefix('unfinished_'), 'tacz_c:' + base,
-                           zh, 'Unfinished Precise ' + ('RPG-7 Rocket' if 'rpg' in name else '40mm Grenade'))
+for name, base in [('rpg_rocket_assembly', 'unfinished_rpg_rocket'), ('grenade_40mm_assembly', 'unfinished_40mm')]:
+    transitional = material('unfinished_precise_' + base.removeprefix('unfinished_'), 'tacz_c:' + base, 'Unfinished Precise ' + ('RPG-7 Rocket' if 'rpg' in name else '40mm Grenade'))
     recipes['precise_' + name] = assembly(source[name], parts | {'tacz:ammo': 'tacz_bsb:precise_ammo'}, transitional)
 
 # Hide both our work-in-progress items and the original Create TaCZ unfinished items.
