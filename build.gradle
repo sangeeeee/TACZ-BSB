@@ -3,6 +3,9 @@ plugins {
     id 'net.neoforged.moddev' version '2.0.143' apply false
 }
 
+// The root only aggregates tasks. Keep Gradle's aggregate diagnostics in a module build directory.
+layout.buildDirectory = layout.projectDirectory.dir('cores/build/aggregate')
+
 allprojects {
     group = rootProject.mod_group_id
     version = rootProject.mod_version
