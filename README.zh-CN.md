@@ -196,8 +196,6 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 
 Forge：47.4.10。游戏运行和目标编译使用 JDK 17；Gradle 启动及 `cores` 编译使用 JDK 21。TaCZ 和 Create 的完整发行包内嵌 SimpleBedrockModel、LuaJ、BCEL、Commons Math、MixinExtras、Registrate、Flywheel 和 Ponder。所有前置包自动下载，不打包进 BSB 产物；无需手动放入 `libs`，也不需要 Forge Config API Port。
 
-[TaCZ Endless Ammo 2.0](https://modrinth.com/mod/tacz-endless-ammo/version/dXzfdyUh) 在 Forge 目标中仅作为**编译依赖**。它不参与开发运行、不进入发行包，也不是本模组的运行前置；暂未实现其专用适配。
-
 ## 开发约定
 
 当前及后续代码只维护当前版本的数据格式和行为，不提供跨版本数据迁移、旧格式回退或历史版本兼容分支。TaCZ 新物品的首次初始化、当前依赖接口适配与数据一致性检查属于正常功能。
@@ -245,7 +243,7 @@ runTarget=:mc-1.21.1:neoforge
 
 Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
 
-Forge 发行产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。`verifyDependencies` 检查三个前置包、九个内嵌库及 Endless Ammo 的仅编译依赖范围。18 项服务端游戏测试覆盖依赖加载、全部 89 条序列装配的 Create 机器接口（44 条 BSB + 45 条 Create: TaCZ）、40 条分支切换路线、配方网络同步、混装与换退弹、持久化、损坏 NBT 拒绝、伤害倍率、RPG、普通及全类型创造弹药盒。`runClientSmoke -PjeiSmoke` 另检查实际 JEI 搜索与客户端渲染。测试代码及结构文件不进入产物。
+Forge 发行产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。`verifyDependencies` 检查三个前置包及九个内嵌库。18 项服务端游戏测试覆盖依赖加载、全部 89 条序列装配的 Create 机器接口（44 条 BSB + 45 条 Create: TaCZ）、40 条分支切换路线、配方网络同步、混装与换退弹、持久化、损坏 NBT 拒绝、伤害倍率、RPG、普通及全类型创造弹药盒。`runClientSmoke -PjeiSmoke` 另检查实际 JEI 搜索与客户端渲染。测试代码及结构文件不进入产物。
 
 - `build` 包含 JUnit 单元测试，报告位于 `cores/build/reports/tests/test/index.html` 及各版本的 `common/build/reports/tests/test/index.html`。
 - 两个加载器子项目提供同名测试任务。Forge 的测试世界与截图位于 `versions/mc-1.20.1/forge/build/`；日常开发任务 `runClient` / `runServer` 使用 `versions/mc-1.20.1/forge/run`。

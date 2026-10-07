@@ -196,8 +196,6 @@ The release JAR does not bundle these three prerequisite mods. Install them and 
 
 Forge: 47.4.10. Game and target compilation require JDK 17; the Gradle launcher and `cores` compilation use JDK 21. The full TaCZ and Create releases include SimpleBedrockModel, LuaJ, BCEL, Commons Math, MixinExtras, Registrate, Flywheel, and Ponder. All prerequisite archives download automatically and remain separate from the BSB artifact. No manual `libs` directory or Forge Config API Port is required.
 
-[TaCZ Endless Ammo 2.0](https://modrinth.com/mod/tacz-endless-ammo/version/dXzfdyUh) is **compile-only** in the Forge target. It is not launched, bundled, or required by BSB. No dedicated Endless Ammo integration is implemented yet.
-
 ## Development policy
 
 The code maintains only the current data format and behavior. It does not provide cross-version migration, old-format fallbacks, or historical compatibility branches. Initializing new TaCZ items, integrating with current dependency APIs, and checking data consistency remain normal functionality.
@@ -245,7 +243,7 @@ You can also pass `-PrunTarget=:mc-1.21.1:neoforge`. Without a selected loader, 
 
 Use `./gradlew` on Linux or macOS. The first build requires internet access. Release artifact: `versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`.
 
-Forge release: `versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`. Its `verifyDependencies` check verifies the three required mods, their nine embedded libraries, and the compile-only Endless Ammo scope. The 18 server GameTests cover dependency loading, all 89 sequenced assemblies through Create machine APIs (44 BSB + 45 Create: TaCZ), 40 branch-switch routes, recipe networking, mixed loading/unloading, persistence, invalid NBT rejection, damage multipliers, RPGs, ammunition boxes, and universal boxes. `runClientSmoke -PjeiSmoke` also checks actual JEI search visibility and client rendering. Test code and structures are excluded from the artifact.
+Forge release: `versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`. Its `verifyDependencies` check verifies the three required mods and their nine embedded libraries. The 18 server GameTests cover dependency loading, all 89 sequenced assemblies through Create machine APIs (44 BSB + 45 Create: TaCZ), 40 branch-switch routes, recipe networking, mixed loading/unloading, persistence, invalid NBT rejection, damage multipliers, RPGs, ammunition boxes, and universal boxes. `runClientSmoke -PjeiSmoke` also checks actual JEI search visibility and client rendering. Test code and structures are excluded from the artifact.
 
 - `build` includes JUnit tests; reports are at `cores/build/reports/tests/test/index.html` and each version's `common/build/reports/tests/test/index.html`.
 - Both loaders expose the same test tasks in their own subprojects. Forge test worlds and screenshots use `versions/mc-1.20.1/forge/build/`; its normal development runs use `versions/mc-1.20.1/forge/run`.

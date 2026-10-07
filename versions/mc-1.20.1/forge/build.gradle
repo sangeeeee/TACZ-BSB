@@ -96,8 +96,6 @@ def extractPonderTestApi = tasks.register('extractPonderTestApi') {
 }
 dependencies {
     gameTestCompileOnly files(ponderTestApi).builtBy(extractPonderTestApi)
-    // Optional APIs are compile-only; Endless Ammo is not a runtime prerequisite.
-    modCompileOnly("maven.modrinth:tacz-endless-ammo:${endless_ammo_version_id}") { transitive = false }
     compileOnly 'mezz.jei:jei-1.20.1-common-api:15.20.0.106'
     compileOnly 'mezz.jei:jei-1.20.1-forge-api:15.20.0.106'
     if (providers.gradleProperty('jeiSmoke').isPresent()) {
@@ -155,7 +153,7 @@ idea.module { downloadSources = true; downloadJavadoc = true }
 // discovers those libraries at launch; they are not rebundled into the BSB JAR.
 tasks.register('verifyDependencies') {
     group = 'verification'
-    description = 'Verify required mods, embedded libraries and the compile-only Endless Ammo scope.'
+    description = 'Verify required mods and embedded libraries.'
     inputs.files(configurations.requiredModArchives)
     inputs.property('requiredModIds', ['tacz', 'tacz_c', 'create'])
     inputs.property('requiredEmbeddedLibraries', ['simplebedrockmodel', 'commons-math3',
@@ -187,15 +185,7 @@ tasks.register('verifyDependencies') {
         if (!missingMods.empty || !missingLibraries.empty) {
             throw new GradleException("Missing Forge dependencies: mods=${missingMods}, libraries=${missingLibraries}")
         }
-        def isEndlessAmmo = { component ->
-            component.moduleVersion?.group == 'maven.modrinth' && component.moduleVersion?.name == 'tacz-endless-ammo'
-        }
-        if (!configurations.compileClasspath.incoming.resolutionResult.allComponents.any(isEndlessAmmo)
-                || configurations.runtimeClasspath.incoming.resolutionResult.allComponents.any(isEndlessAmmo)) {
-            throw new GradleException('Endless Ammo must be present only on the compile classpath.')
-        }
         task.logger.lifecycle("Forge dependencies verified: 3 mods and ${libraries.size()} embedded libraries.")
-        task.logger.lifecycle('Endless Ammo verified: compile-only, excluded from the runtime classpath.')
     }
 }
 tasks.named('check') {
