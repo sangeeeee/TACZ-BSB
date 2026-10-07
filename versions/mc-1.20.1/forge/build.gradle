@@ -76,9 +76,10 @@ def requiredMods = [
 def ponderTestApi = layout.buildDirectory.file('gameTest-api/ponder.jar')
 def extractPonderTestApi = tasks.register('extractPonderTestApi') {
     inputs.files(configurations.requiredModArchives)
+    inputs.property('createArchiveName', "create-${create_forge_version_id}.jar".toString())
     outputs.file(ponderTestApi)
-    doLast {
-        def createArchive = configurations.requiredModArchives.files.find { it.name == "create-${create_forge_version_id}.jar" }
+    doLast { task ->
+        def createArchive = task.inputs.files.files.find { it.name == task.inputs.properties.createArchiveName }
         if (createArchive == null) throw new GradleException('Missing pinned Create archive for the test API.')
         new ZipFile(createArchive).withCloseable { archive ->
             def libraries = archive.getInputStream(archive.getEntry('META-INF/jarjar/metadata.json')).withCloseable {
@@ -86,7 +87,7 @@ def extractPonderTestApi = tasks.register('extractPonderTestApi') {
             }
             def ponder = libraries.jars.find { it.identifier.artifact == 'Ponder-Forge-1.20.1' }
             if (ponder == null) throw new GradleException('Missing bundled Ponder API in Create.')
-            def target = ponderTestApi.get().asFile
+            def target = task.outputs.files.singleFile
             target.parentFile.mkdirs()
             archive.getInputStream(archive.getEntry(ponder.path)).withCloseable { input ->
                 target.withOutputStream { output -> input.transferTo(output) }
