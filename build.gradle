@@ -1,6 +1,7 @@
 plugins {
     id 'base'
     id 'net.neoforged.moddev' version '2.0.143' apply false
+    id 'net.neoforged.moddev.legacyforge' version '2.0.143' apply false
 }
 
 // The root only aggregates tasks. Keep Gradle's aggregate diagnostics in a module build directory.

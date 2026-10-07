@@ -1,0 +1,27 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev.legacyforge'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+base.archivesName = "${mod_id}-common-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+
+// Loader-independent 1.20.1 sources compile against vanilla Minecraft.
+legacyForge {
+    enable {
+        mcpVersion = minecraft_version
+        disableRecompilation = false
+    }
+}
+dependencies { api project(':cores') }
+configurations {
+    commonJava { canBeConsumed = true; canBeResolved = false }
+    commonResources { canBeConsumed = true; canBeResolved = false }
+}
+artifacts {
+    commonJava file('src/main/java')
+    commonResources file('src/main/resources')
+}
+sourceSets.main.resources { exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep' }
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }

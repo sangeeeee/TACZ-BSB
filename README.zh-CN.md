@@ -7,7 +7,7 @@
 Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良弹药；新增高能材料流水线生产精密弹药；TaCZ 工作台生产普通弹药。
 
 - 模组 ID：`tacz_bsb`
-- 版本：`1.0.0-beta`（NeoForge，发行文件包含 `neoforge` 标识）
+- 版本：`1.0.0-beta`（产物文件名包含加载器标识）
 - 作者：Sange
 - 许可证：[MIT](LICENSE)
 - Java 包：`com.sange.tacz_bsb`
@@ -154,6 +154,10 @@ ServerEvents.recipes(event => {
 
 ## 必选依赖
 
+以上弹药功能目前由 **NeoForge 1.21.1** 实现。**Forge 1.20.1** 已建立项目结构、加载器入口、依赖及依赖游戏测试，尚未移植弹药功能。
+
+### NeoForge 1.21.1
+
 | 模组 | 锁定版本 | 构建仓库 |
 | --- | --- | --- |
 | [TaCZ 1.21.1 NeoForge Port](https://modrinth.com/mod/tacz-1.21.1) | 1.1.8-hotfix-r6 | Modrinth Maven |
@@ -164,6 +168,16 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 
 本模组发布 JAR 不内嵌这三个前置模组，游戏客户端和服务端均须安装它们及本模组。Mixin 按表中版本验证；上游调整装填或射击方法后可能需要适配。
 
+### Forge 1.20.1 开发目标
+
+| 模组 | 锁定版本 | 构建仓库 |
+| --- | --- | --- |
+| [TaCZ](https://modrinth.com/mod/timeless-and-classics-zero/version/AzCBJlex) | 1.1.8-hotfix2 | Modrinth Maven |
+| [Create: TaCZ](https://www.curseforge.com/minecraft/mc-mods/tacz-create/files/7327274) | 1.0.2 | Curse Maven |
+| [Create](https://modrinth.com/mod/create/version/8amzvn9x) | 6.0.8 | Modrinth Maven |
+
+Forge：47.4.10。游戏运行和目标编译使用 JDK 17；Gradle 启动及 `cores` 编译使用 JDK 21。TaCZ 和 Create 的完整发行包内嵌 SimpleBedrockModel、LuaJ、BCEL、Commons Math、MixinExtras、Registrate、Flywheel 和 Ponder。所有前置包自动下载，不打包进 BSB 产物；无需手动放入 `libs`，也不需要 Forge Config API Port。
+
 ## 开发约定
 
 当前及后续代码只维护当前版本的数据格式和行为，不提供跨版本数据迁移、旧格式回退或历史版本兼容分支。TaCZ 新物品的首次初始化、当前依赖接口适配与数据一致性检查属于正常功能。
@@ -173,6 +187,10 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 ```text
 cores/                          纯 Java 弹药状态逻辑及共用 Logo
 versions/
+  mc-1.20.1/
+    gradle.properties           Minecraft 1.20.1 与 Java 17
+    common/                     后续 1.20.1 不依赖加载器的代码及资源
+    forge/                      Forge 基础入口、依赖及依赖测试
   mc-1.21.1/
     gradle.properties           Minecraft、映射及 Java 版本
     common/                     1.21.1 不依赖加载器的代码及游戏资源
@@ -182,14 +200,14 @@ versions/
 
 根目录的 `build`、`assemble`、`check`、`clean` 汇总所有目标；`:mc-1.21.1:build` 构建该版本，`:mc-1.21.1:neoforge:build` 构建其 NeoForge 发行包并检查所用共用模块。各模块的构建产物及开发存档彼此独立。`cores` 与 `common` 的 JAR 为开发库，发行时使用已合并必要内容的 NeoForge JAR。
 
-参考 TravelingMerchantWagon，Gradle 自动发现 `versions/mc-*` 中带有构建脚本的 `common`、`neoforge`、`fabric`、`forge` 模块。目前只实现 1.21.1 NeoForge；后续 Fabric 实现可编译同一版本的 common 源码和资源，依赖特定加载器的代码留在各自目标中。4 条使用 NeoForge 流体格式的配方也保留在 NeoForge 资源目录。
+参考 TravelingMerchantWagon，Gradle 自动发现 `versions/mc-*` 中带有构建脚本的 `common`、`neoforge`、`fabric`、`forge` 模块。1.20.1 Forge 基础项目与 1.21.1 NeoForge 实现分别拥有自己的 common 模块，依赖特定加载器的代码留在各自目标中。4 条使用 NeoForge 流体格式的配方也保留在 NeoForge 资源目录。
 
 运行时指定完整加载器任务。若希望本地使用简短任务名，可创建不提交的 `gradle-local.properties`：
 
 ```properties
 runTarget=:mc-1.21.1:neoforge
 # 可选本地 JDK 路径，多个路径以逗号分隔：
-# org.gradle.java.installations.paths=D:/dev/java/jdk21
+# org.gradle.java.installations.paths=D:/dev/java/jdk17,D:/dev/java/jdk21
 ```
 
 也可传入 `-PrunTarget=:mc-1.21.1:neoforge`。未选择加载器时，简短运行任务会提示选择目标，避免同时启动多个版本。
@@ -198,11 +216,15 @@ runTarget=:mc-1.21.1:neoforge
 
 ```powershell
 .\gradlew.bat build
+.\gradlew.bat :mc-1.20.1:forge:build
+.\gradlew.bat :mc-1.20.1:forge:runGameTestServer
 .\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
 .\gradlew.bat :mc-1.21.1:neoforge:runClientSmoke
 ```
 
 Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
+
+Forge 基础项目产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。它是开发骨架，尚不能使用本模组的弹药功能。`verifyDependencies` 检查三个前置包及其九个内嵌库；`runGameTestServer` 在 `versions/mc-1.20.1/forge/build/gametest-run` 检查实际模组加载、物品注册、TaCZ 枪包加载与 Create: TaCZ 配方解析。日常开发使用 `:mc-1.20.1:forge:runClient` / `:mc-1.20.1:forge:runServer`，工作目录为 `versions/mc-1.20.1/forge/run`。测试代码及结构文件不进入产物。
 
 - `build` 包含 JUnit 单元测试，报告分别在 `cores/build/reports/tests/test/index.html` 和 `versions/mc-1.21.1/common/build/reports/tests/test/index.html`。
 - `runGameTestServer` 在 `versions/mc-1.21.1/neoforge/build/gametest-run` 运行真实前置模组和集成测试，完成后退出。

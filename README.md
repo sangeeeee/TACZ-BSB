@@ -7,7 +7,7 @@
 A Minecraft 1.21.1 / NeoForge addon that rewards ammunition automation. Existing Create: TaCZ assembly lines produce **Improved** ammunition, new high-energy material production lines produce **Precise** ammunition, and TaCZ workbenches continue to produce ordinary ammunition.
 
 - Mod ID: `tacz_bsb`
-- Version: `1.0.0-beta` (NeoForge; release filenames include `neoforge`)
+- Version: `1.0.0-beta` (artifact filenames include the loader)
 - Author: Sange
 - License: [MIT](LICENSE)
 - Java package: `com.sange.tacz_bsb`
@@ -154,6 +154,10 @@ The enhanced tiers are separately registered items; calibers within each tier ar
 
 ## Required dependencies
 
+The gameplay features described above are implemented for **NeoForge 1.21.1**. **Forge 1.20.1** currently has its project structure, loader entry point, dependencies, and dependency GameTest; its ammunition gameplay port is pending.
+
+### NeoForge 1.21.1
+
 | Mod | Pinned version | Build repository |
 | --- | --- | --- |
 | [TaCZ 1.21.1 NeoForge Port](https://modrinth.com/mod/tacz-1.21.1) | 1.1.8-hotfix-r6 | Modrinth Maven |
@@ -164,6 +168,16 @@ NeoForge: 21.1.248. JDK: 21. The build downloads the dependencies and their bund
 
 The release JAR does not bundle these three prerequisite mods. Install them and this addon on both clients and servers. Mixins are verified against the versions above; upstream reload or shooting API changes may require updates.
 
+### Forge 1.20.1 development target
+
+| Mod | Pinned version | Build repository |
+| --- | --- | --- |
+| [TaCZ](https://modrinth.com/mod/timeless-and-classics-zero/version/AzCBJlex) | 1.1.8-hotfix2 | Modrinth Maven |
+| [Create: TaCZ](https://www.curseforge.com/minecraft/mc-mods/tacz-create/files/7327274) | 1.0.2 | Curse Maven |
+| [Create](https://modrinth.com/mod/create/version/8amzvn9x) | 6.0.8 | Modrinth Maven |
+
+Forge: 47.4.10. Game and target compilation require JDK 17; the Gradle launcher and `cores` compilation use JDK 21. The full TaCZ and Create releases include SimpleBedrockModel, LuaJ, BCEL, Commons Math, MixinExtras, Registrate, Flywheel, and Ponder. All prerequisite archives download automatically and remain separate from the BSB artifact. No manual `libs` directory or Forge Config API Port is required.
+
 ## Development policy
 
 The code maintains only the current data format and behavior. It does not provide cross-version migration, old-format fallbacks, or historical compatibility branches. Initializing new TaCZ items, integrating with current dependency APIs, and checking data consistency remain normal functionality.
@@ -173,6 +187,10 @@ The code maintains only the current data format and behavior. It does not provid
 ```text
 cores/                          Pure Java ammunition state and shared logo
 versions/
+  mc-1.20.1/
+    gradle.properties           Minecraft 1.20.1 and Java 17
+    common/                     Future loader-independent 1.20.1 code and resources
+    forge/                      Forge foundation, dependencies, and dependency test
   mc-1.21.1/
     gradle.properties           Minecraft, mappings, and Java version
     common/                     Loader-independent 1.21.1 code and game resources
@@ -182,14 +200,14 @@ versions/
 
 The root `build`, `assemble`, `check`, and `clean` tasks aggregate all targets. `:mc-1.21.1:build` builds that version, while `:mc-1.21.1:neoforge:build` builds its NeoForge release and checks its shared modules. Each module owns its build output and development worlds. The `cores` and `common` JARs are development libraries; distribute the NeoForge JAR, which includes their required contents.
 
-Like TravelingMerchantWagon, Gradle discovers `common`, `neoforge`, `fabric`, and `forge` modules with build scripts under each `versions/mc-*` directory. Currently only 1.21.1 NeoForge is implemented. Future Fabric implementations can compile the same common sources and resources; dependency-specific code stays in each loader target. The four recipes using NeoForge fluid ingredient codecs also remain in the NeoForge resource directory.
+Like TravelingMerchantWagon, Gradle discovers `common`, `neoforge`, `fabric`, and `forge` modules with build scripts under each `versions/mc-*` directory. The 1.20.1 Forge foundation and the 1.21.1 NeoForge implementation have separate common modules. Dependency-specific code stays in each loader target. The four recipes using NeoForge fluid ingredient codecs also remain in the NeoForge resource directory.
 
 Launch a fully qualified loader task. To use short launch names locally, create an ignored `gradle-local.properties` file:
 
 ```properties
 runTarget=:mc-1.21.1:neoforge
 # Optional local JDK locations, separated by commas:
-# org.gradle.java.installations.paths=D:/dev/java/jdk21
+# org.gradle.java.installations.paths=D:/dev/java/jdk17,D:/dev/java/jdk21
 ```
 
 You can also pass `-PrunTarget=:mc-1.21.1:neoforge`. Without a selected loader, bare launch tasks fail with a target-selection message instead of launching multiple versions.
@@ -198,11 +216,15 @@ You can also pass `-PrunTarget=:mc-1.21.1:neoforge`. Without a selected loader, 
 
 ```powershell
 .\gradlew.bat build
+.\gradlew.bat :mc-1.20.1:forge:build
+.\gradlew.bat :mc-1.20.1:forge:runGameTestServer
 .\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
 .\gradlew.bat :mc-1.21.1:neoforge:runClientSmoke
 ```
 
 Use `./gradlew` on Linux or macOS. The first build requires internet access. Release artifact: `versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`.
+
+Forge foundation artifact: `versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`. This is a development scaffold, not a playable port of the ammunition features. Its `verifyDependencies` check resolves all three prerequisite mods and verifies their nine embedded libraries. Its `runGameTestServer` checks actual mod loading, item registration, TaCZ gun-pack loading, and Create: TaCZ recipe parsing in `versions/mc-1.20.1/forge/build/gametest-run`. Use `:mc-1.20.1:forge:runClient` / `:mc-1.20.1:forge:runServer` for development; their working directory is `versions/mc-1.20.1/forge/run`. Test code and structures are excluded from its artifact.
 
 - `build` includes JUnit tests; reports are at `cores/build/reports/tests/test/index.html` and `versions/mc-1.21.1/common/build/reports/tests/test/index.html`.
 - `runGameTestServer` runs the actual dependencies and integration tests in `versions/mc-1.21.1/neoforge/build/gametest-run`, then exits.
