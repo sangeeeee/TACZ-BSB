@@ -2,7 +2,7 @@
 
 **English** | [简体中文](README.zh-CN.md)
 
-![TACZ: Better Streamline Bullet](src/main/resources/logo.png)
+![TACZ: Better Streamline Bullet](cores/src/main/resources/logo.png)
 
 A Minecraft 1.21.1 / NeoForge addon that rewards ammunition automation. Existing Create: TaCZ assembly lines produce **Improved** ammunition, new high-energy material production lines produce **Precise** ammunition, and TaCZ workbenches continue to produce ordinary ammunition.
 
@@ -47,7 +47,7 @@ There is no high-energy primer mix or recipe combining high-energy charge with r
 
 Set the basin filter to High-Energy Gunpowder Cake to prevent ordinary gunpowder cake from being produced before all ingredients arrive.
 
-The 47 ammunition assembly chains preserve the original operation order and ingredient quantities. For example, .22 Winchester receives its primer before high-energy powder; 12g follows the paper shell, primer, high-energy powder, wad, and hardened pellets sequence. After shared initial operations, the deployer follows the branch matching the supplied powder. Once different powder is consumed, that branch is locked. Intermediate items track their own Create assembly progress. Material IDs are listed in [BsbMaterials.java](src/main/java/com/sange/tacz_bsb/BsbMaterials.java).
+The 47 ammunition assembly chains preserve the original operation order and ingredient quantities. For example, .22 Winchester receives its primer before high-energy powder; 12g follows the paper shell, primer, high-energy powder, wad, and hardened pellets sequence. After shared initial operations, the deployer follows the branch matching the supplied powder. Once different powder is consumed, that branch is locked. Intermediate items track their own Create assembly progress. Material IDs are listed in [BsbMaterials.java](versions/mc-1.21.1/neoforge/src/main/java/com/sange/tacz_bsb/BsbMaterials.java).
 
 ## Mixed loading and unloading
 
@@ -168,21 +168,47 @@ The release JAR does not bundle these three prerequisite mods. Install them and 
 
 The code maintains only the current data format and behavior. It does not provide cross-version migration, old-format fallbacks, or historical compatibility branches. Initializing new TaCZ items, integrating with current dependency APIs, and checking data consistency remain normal functionality.
 
+## Project layout and task selection
+
+```text
+cores/                          Pure Java ammunition state and shared logo
+versions/
+  mc-1.21.1/
+    gradle.properties           Minecraft, mappings, and Java version
+    common/                     Loader-independent 1.21.1 code and game resources
+    neoforge/                   NeoForge implementation, metadata, and game tests
+      gradle.properties         Pinned loader and mod dependency versions
+```
+
+The root `build`, `assemble`, `check`, and `clean` tasks aggregate all targets. `:mc-1.21.1:build` builds that version, while `:mc-1.21.1:neoforge:build` builds its NeoForge release and checks its shared modules. Each module owns its build output and development worlds. The `cores` and `common` JARs are development libraries; distribute the NeoForge JAR, which includes their required contents.
+
+Like TravelingMerchantWagon, Gradle discovers `common`, `neoforge`, `fabric`, and `forge` modules with build scripts under each `versions/mc-*` directory. Currently only 1.21.1 NeoForge is implemented. Future Fabric implementations can compile the same common sources and resources; dependency-specific code stays in each loader target. The four recipes using NeoForge fluid ingredient codecs also remain in the NeoForge resource directory.
+
+Launch a fully qualified loader task. To use short launch names locally, create an ignored `gradle-local.properties` file:
+
+```properties
+runTarget=:mc-1.21.1:neoforge
+# Optional local JDK locations, separated by commas:
+# org.gradle.java.installations.paths=D:/dev/java/jdk21
+```
+
+You can also pass `-PrunTarget=:mc-1.21.1:neoforge`. Without a selected loader, bare launch tasks fail with a target-selection message instead of launching multiple versions.
+
 ## Building and testing
 
 ```powershell
 .\gradlew.bat build
-.\gradlew.bat runGameTestServer
-.\gradlew.bat runClientSmoke
+.\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
+.\gradlew.bat :mc-1.21.1:neoforge:runClientSmoke
 ```
 
-Use `./gradlew` on Linux or macOS. The first build requires internet access. Release artifact: `build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`.
+Use `./gradlew` on Linux or macOS. The first build requires internet access. Release artifact: `versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`.
 
-- `build` includes JUnit tests; the report is at `build/reports/tests/test/index.html`.
-- `runGameTestServer` runs the actual dependencies and integration tests in `build/gametest-run`, then exits.
-- `runClientSmoke` first runs server tests and copies an isolated test world, then launches the client to check three-tier rendering for 24 calibers, creative tabs, state synchronization, and the HUD. It saves screenshots and exits automatically. A graphical environment is required; screenshots are in `build/client-smoke/screenshots/`.
-- Use `runClient` / `runServer` for normal development. GameTest classes and test structures are excluded from the release JAR.
+- `build` includes JUnit tests; reports are at `cores/build/reports/tests/test/index.html` and `versions/mc-1.21.1/common/build/reports/tests/test/index.html`.
+- `runGameTestServer` runs the actual dependencies and integration tests in `versions/mc-1.21.1/neoforge/build/gametest-run`, then exits.
+- `runClientSmoke` first runs server tests and copies an isolated test world, then launches the client to check three-tier rendering for 24 calibers, creative tabs, state synchronization, and the HUD. It saves screenshots and exits automatically. A graphical environment is required; screenshots are in `versions/mc-1.21.1/neoforge/build/client-smoke/screenshots/`.
+- Use `:mc-1.21.1:neoforge:runClient` / `:mc-1.21.1:neoforge:runServer` for normal development. GameTest classes and test structures have a separate `src/gameTest` source set and are excluded from the release JAR.
 
-Integration checks are defined in [CompatibilityGameTests.java](src/main/java/com/sange/tacz_bsb/gametest/CompatibilityGameTests.java). These checks do not constitute exhaustive testing of third-party gun packs or modpacks.
+Integration checks are defined in [CompatibilityGameTests.java](versions/mc-1.21.1/neoforge/src/gameTest/java/com/sange/tacz_bsb/gametest/CompatibilityGameTests.java). These checks do not constitute exhaustive testing of third-party gun packs or modpacks.
 
 This project is based on the NeoForged MDK. Its MIT notice is retained in [TEMPLATE_LICENSE.txt](TEMPLATE_LICENSE.txt).

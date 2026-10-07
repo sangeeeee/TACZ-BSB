@@ -1,0 +1,8 @@
+// Minecraft properties come from the version parent; loader properties stay local.
+[file('../gradle.properties'), file('gradle.properties')].each { propertyFile ->
+    if (propertyFile.isFile()) {
+        def values = new Properties()
+        propertyFile.withReader('UTF-8') { values.load(it) }
+        values.each { key, value -> project.ext.set(key.toString(), value.toString()) }
+    }
+}

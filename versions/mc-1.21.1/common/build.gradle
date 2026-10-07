@@ -1,0 +1,36 @@
+plugins {
+    id 'java-library'
+    id 'net.neoforged.moddev'
+}
+
+apply from: rootProject.file('gradle/load-target-properties.gradle')
+base.archivesName = "${mod_id}-common-${minecraft_version}"
+java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
+
+// Compile against vanilla Minecraft only. Each loader compiles these sources itself.
+neoForge {
+    neoFormVersion = neo_form_version
+    parchment {
+        minecraftVersion = parchment_minecraft_version
+        mappingsVersion = parchment_mappings_version
+    }
+}
+repositories { mavenCentral() }
+dependencies {
+    api project(':cores')
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
+sourceSets.main.resources { exclude '**/*.bbmodel', '**/.cache/**' }
+configurations {
+    commonJava { canBeConsumed = true; canBeResolved = false }
+    commonResources { canBeConsumed = true; canBeResolved = false }
+}
+artifacts {
+    commonJava file('src/main/java')
+    commonResources file('src/main/resources')
+}
+tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('test', Test) { useJUnitPlatform() }

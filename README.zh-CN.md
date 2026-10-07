@@ -2,7 +2,7 @@
 
 [English](README.md) | **简体中文**
 
-![TACZ: Better Streamline Bullet](src/main/resources/logo.png)
+![TACZ: Better Streamline Bullet](cores/src/main/resources/logo.png)
 
 Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良弹药；新增高能材料流水线生产精密弹药；TaCZ 工作台生产普通弹药。
 
@@ -47,7 +47,7 @@ Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良
 
 高能火药饼生产时可在工作盆过滤器中指定高能火药饼，防止材料尚未到齐时提前生产普通火药饼。
 
-原有 47 条弹药序列装配严格保留原配方顺序及材料数量。例如 .22 温彻斯特先装底火、后装高能火药；12g 按纸壳、底火、高能火药、弹托、硬化弹丸的顺序进行。共同步骤完成后，机械手按实际投入的火药接续对应产线；一旦投入不同火药便锁定分支。加工中物品独立记录 Create 的装配进度。详细物品 ID 见 [材料注册表](src/main/java/com/sange/tacz_bsb/BsbMaterials.java)。
+原有 47 条弹药序列装配严格保留原配方顺序及材料数量。例如 .22 温彻斯特先装底火、后装高能火药；12g 按纸壳、底火、高能火药、弹托、硬化弹丸的顺序进行。共同步骤完成后，机械手按实际投入的火药接续对应产线；一旦投入不同火药便锁定分支。加工中物品独立记录 Create 的装配进度。详细物品 ID 见 [材料注册表](versions/mc-1.21.1/neoforge/src/main/java/com/sange/tacz_bsb/BsbMaterials.java)。
 
 ## 混装与退弹规则
 
@@ -168,21 +168,47 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 
 当前及后续代码只维护当前版本的数据格式和行为，不提供跨版本数据迁移、旧格式回退或历史版本兼容分支。TaCZ 新物品的首次初始化、当前依赖接口适配与数据一致性检查属于正常功能。
 
+## 项目结构与任务选择
+
+```text
+cores/                          纯 Java 弹药状态逻辑及共用 Logo
+versions/
+  mc-1.21.1/
+    gradle.properties           Minecraft、映射及 Java 版本
+    common/                     1.21.1 不依赖加载器的代码及游戏资源
+    neoforge/                   NeoForge 实现、元数据及游戏测试
+      gradle.properties         固定的加载器与前置模组版本
+```
+
+根目录的 `build`、`assemble`、`check`、`clean` 汇总所有目标；`:mc-1.21.1:build` 构建该版本，`:mc-1.21.1:neoforge:build` 构建其 NeoForge 发行包并检查所用共用模块。各模块的构建产物及开发存档彼此独立。`cores` 与 `common` 的 JAR 为开发库，发行时使用已合并必要内容的 NeoForge JAR。
+
+参考 TravelingMerchantWagon，Gradle 自动发现 `versions/mc-*` 中带有构建脚本的 `common`、`neoforge`、`fabric`、`forge` 模块。目前只实现 1.21.1 NeoForge；后续 Fabric 实现可编译同一版本的 common 源码和资源，依赖特定加载器的代码留在各自目标中。4 条使用 NeoForge 流体格式的配方也保留在 NeoForge 资源目录。
+
+运行时指定完整加载器任务。若希望本地使用简短任务名，可创建不提交的 `gradle-local.properties`：
+
+```properties
+runTarget=:mc-1.21.1:neoforge
+# 可选本地 JDK 路径，多个路径以逗号分隔：
+# org.gradle.java.installations.paths=D:/dev/java/jdk21
+```
+
+也可传入 `-PrunTarget=:mc-1.21.1:neoforge`。未选择加载器时，简短运行任务会提示选择目标，避免同时启动多个版本。
+
 ## 构建与测试
 
 ```powershell
 .\gradlew.bat build
-.\gradlew.bat runGameTestServer
-.\gradlew.bat runClientSmoke
+.\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
+.\gradlew.bat :mc-1.21.1:neoforge:runClientSmoke
 ```
 
-Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
+Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
 
-- `build` 包含 JUnit 单元测试，报告在 `build/reports/tests/test/index.html`。
-- `runGameTestServer` 在 `build/gametest-run` 运行真实前置模组和集成测试，完成后退出。
-- `runClientSmoke` 先运行服务端测试并复制隔离测试世界，再启动客户端，检查 24 种口径的三档弹药渲染、创造栏、状态同步和 HUD，保存截图后自动退出。需要图形环境；截图位于 `build/client-smoke/screenshots/`。
-- 日常开发使用 `runClient` / `runServer`。正式 JAR 排除游戏测试类和测试结构。
+- `build` 包含 JUnit 单元测试，报告分别在 `cores/build/reports/tests/test/index.html` 和 `versions/mc-1.21.1/common/build/reports/tests/test/index.html`。
+- `runGameTestServer` 在 `versions/mc-1.21.1/neoforge/build/gametest-run` 运行真实前置模组和集成测试，完成后退出。
+- `runClientSmoke` 先运行服务端测试并复制隔离测试世界，再启动客户端，检查 24 种口径的三档弹药渲染、创造栏、状态同步和 HUD，保存截图后自动退出。需要图形环境；截图位于 `versions/mc-1.21.1/neoforge/build/client-smoke/screenshots/`。
+- 日常开发使用 `:mc-1.21.1:neoforge:runClient` / `:mc-1.21.1:neoforge:runServer`。游戏测试独立存放于 `src/gameTest`，正式 JAR 排除其代码和资源。
 
-集成检查见 [CompatibilityGameTests.java](src/main/java/com/sange/tacz_bsb/gametest/CompatibilityGameTests.java)。这些检查不代表已穷尽所有第三方枪包和整合包的兼容性。
+集成检查见 [CompatibilityGameTests.java](versions/mc-1.21.1/neoforge/src/gameTest/java/com/sange/tacz_bsb/gametest/CompatibilityGameTests.java)。这些检查不代表已穷尽所有第三方枪包和整合包的兼容性。
 
 本项目基于 NeoForged MDK，其 MIT 声明保留于 [TEMPLATE_LICENSE.txt](TEMPLATE_LICENSE.txt)。

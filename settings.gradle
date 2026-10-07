@@ -9,3 +9,34 @@ plugins {
 }
 
 rootProject.name = 'TACZ-Better-Streamline-Bullet'
+
+// Workstation toolchain locations are optional and never committed.
+def localProperties = new Properties()
+def localFile = file('gradle-local.properties')
+if (localFile.isFile()) {
+    localFile.withReader('UTF-8') { localProperties.load(it) }
+    def selectedProperties = new LinkedHashMap(gradle.startParameter.projectProperties)
+    localProperties.each { key, value ->
+        if (key.toString().startsWith('org.gradle.java.installations.')) {
+            selectedProperties.putIfAbsent(key.toString(), value.toString())
+        }
+    }
+    gradle.startParameter.projectProperties = selectedProperties
+}
+
+include 'cores'
+file('versions').listFiles().findAll { it.isDirectory() && it.name.startsWith('mc-') }
+        .sort { it.name }.each { versionDirectory ->
+    def versionPath = ":${versionDirectory.name}"
+    include versionPath
+    project(versionPath).projectDir = versionDirectory
+    ['common', 'neoforge', 'fabric', 'forge'].each { platform ->
+        def moduleDirectory = new File(versionDirectory, platform)
+        if (new File(moduleDirectory, 'build.gradle').isFile()
+                || new File(moduleDirectory, 'build.gradle.kts').isFile()) {
+            def modulePath = "${versionPath}:${platform}"
+            include modulePath
+            project(modulePath).projectDir = moduleDirectory
+        }
+    }
+}
