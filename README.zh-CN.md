@@ -245,7 +245,7 @@ runTarget=:mc-1.21.1:neoforge
 
 Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
 
-Forge 发行产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。`verifyDependencies` 检查三个前置包、九个内嵌库及 Endless Ammo 的仅编译依赖范围。15 项服务端游戏测试覆盖依赖加载、完整生产链、混装与换退弹、持久化、损坏 NBT 拒绝、伤害倍率、RPG、普通及全类型创造弹药盒。`runClientSmoke -PjeiSmoke` 另检查实际 JEI 搜索与客户端渲染。测试代码及结构文件不进入产物。
+Forge 发行产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。`verifyDependencies` 检查三个前置包、九个内嵌库及 Endless Ammo 的仅编译依赖范围。18 项服务端游戏测试覆盖依赖加载、全部 89 条序列装配的 Create 机器接口（44 条 BSB + 45 条 Create: TaCZ）、40 条分支切换路线、配方网络同步、混装与换退弹、持久化、损坏 NBT 拒绝、伤害倍率、RPG、普通及全类型创造弹药盒。`runClientSmoke -PjeiSmoke` 另检查实际 JEI 搜索与客户端渲染。测试代码及结构文件不进入产物。
 
 - `build` 包含 JUnit 单元测试，报告位于 `cores/build/reports/tests/test/index.html` 及各版本的 `common/build/reports/tests/test/index.html`。
 - 两个加载器子项目提供同名测试任务。Forge 的测试世界与截图位于 `versions/mc-1.20.1/forge/build/`；日常开发任务 `runClient` / `runServer` 使用 `versions/mc-1.20.1/forge/run`。

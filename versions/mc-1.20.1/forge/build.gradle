@@ -71,7 +71,31 @@ def requiredMods = [
     "curse.maven:tacz-create-1109760:${tacz_c_file_id}",
     "maven.modrinth:create:${create_forge_version_id}"
 ]
+// Create's public block entity types implement Ponder interfaces. Its bundled
+// Ponder API is needed when the development tests call the real machine methods.
+def ponderTestApi = layout.buildDirectory.file('gameTest-api/ponder.jar')
+def extractPonderTestApi = tasks.register('extractPonderTestApi') {
+    inputs.files(configurations.requiredModArchives)
+    outputs.file(ponderTestApi)
+    doLast {
+        def createArchive = configurations.requiredModArchives.files.find { it.name == "create-${create_forge_version_id}.jar" }
+        if (createArchive == null) throw new GradleException('Missing pinned Create archive for the test API.')
+        new ZipFile(createArchive).withCloseable { archive ->
+            def libraries = archive.getInputStream(archive.getEntry('META-INF/jarjar/metadata.json')).withCloseable {
+                new JsonSlurper().parse(it, 'UTF-8')
+            }
+            def ponder = libraries.jars.find { it.identifier.artifact == 'Ponder-Forge-1.20.1' }
+            if (ponder == null) throw new GradleException('Missing bundled Ponder API in Create.')
+            def target = ponderTestApi.get().asFile
+            target.parentFile.mkdirs()
+            archive.getInputStream(archive.getEntry(ponder.path)).withCloseable { input ->
+                target.withOutputStream { output -> input.transferTo(output) }
+            }
+        }
+    }
+}
 dependencies {
+    gameTestCompileOnly files(ponderTestApi).builtBy(extractPonderTestApi)
     // Optional APIs are compile-only; Endless Ammo is not a runtime prerequisite.
     modCompileOnly("maven.modrinth:tacz-endless-ammo:${endless_ammo_version_id}") { transitive = false }
     compileOnly 'mezz.jei:jei-1.20.1-common-api:15.20.0.106'
