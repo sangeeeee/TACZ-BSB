@@ -1,0 +1,67 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:pellets"
+  },
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_hardened_pellets"
+  },
+  "loops": 1,
+  "sequence": [
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        },
+        {
+          "amount": 100,
+          "fluid": "minecraft:lava",
+          "nbt": {}
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        }
+      ]
+    },
+    {
+      "type": "create:filling",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        },
+        {
+          "amount": 100,
+          "fluid": "minecraft:water",
+          "nbt": {}
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_hardened_pellets"
+        }
+      ]
+    }
+  ],
+  "results": [
+    {
+      "item": "tacz_bsb:hardened_pellets",
+      "count": 1
+    }
+  ]
+}

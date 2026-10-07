@@ -1,0 +1,33 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_12g"
+  },
+  "loops": 2,
+  "results": [
+    {
+      "item": "tacz_bsb:precise_ammo",
+      "nbt": {
+        "AmmoId": "tacz:12g"
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_12g"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_12g"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_precise_12g"
+  }
+}

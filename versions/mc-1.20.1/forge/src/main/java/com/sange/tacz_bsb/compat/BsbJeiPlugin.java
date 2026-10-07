@@ -1,0 +1,26 @@
+package com.sange.tacz_bsb.compat;
+
+import com.sange.tacz_bsb.BsbContent;
+import com.tacz.guns.compat.jei.GunModSubtype;
+import mezz.jei.api.IModPlugin;
+import mezz.jei.api.JeiPlugin;
+import mezz.jei.api.registration.ISubtypeRegistration;
+import net.minecraft.resources.ResourceLocation;
+
+/** Optional JEI integration: each AmmoId is a distinct searchable recipe ingredient. */
+@JeiPlugin
+public final class BsbJeiPlugin implements IModPlugin {
+    @Override public ResourceLocation getPluginUid() { return ResourceLocation.tryParse("tacz_bsb:jei"); }
+    @Override public void registerItemSubtypes(ISubtypeRegistration registration) {
+        registration.registerSubtypeInterpreter(BsbContent.IMPROVED_AMMO.get(), GunModSubtype.getAmmoSubtype());
+        registration.registerSubtypeInterpreter(BsbContent.PRECISE_AMMO.get(), GunModSubtype.getAmmoSubtype());
+    }
+    @Override public void onRuntimeAvailable(mezz.jei.api.runtime.IJeiRuntime runtime) {
+        var manager = runtime.getIngredientManager();
+        var unfinished = manager.getAllIngredients(mezz.jei.api.constants.VanillaTypes.ITEM_STACK).stream()
+                .filter(com.sange.tacz_bsb.client.AssemblyVisibility::hidden).toList();
+        if (!unfinished.isEmpty()) {
+            manager.removeIngredientsAtRuntime(mezz.jei.api.constants.VanillaTypes.ITEM_STACK, unfinished);
+        }
+    }
+}

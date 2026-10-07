@@ -1,0 +1,81 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_50ae"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "item": "tacz_bsb:high_casefull_50ae"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_grains"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_grains"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50ae"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_high_casefull_50ae"
+  }
+}

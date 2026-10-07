@@ -1,0 +1,113 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_c:case_50bmg"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "item": "tacz_bsb:high_casefull_50bmg"
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_c:primer"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_pellets"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_charge"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        },
+        {
+          "item": "tacz_bsb:high_gunpowder_charge"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_high_casefull_50bmg"
+  }
+}

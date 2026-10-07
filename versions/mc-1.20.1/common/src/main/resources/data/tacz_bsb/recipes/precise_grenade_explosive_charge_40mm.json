@@ -1,0 +1,21 @@
+{
+  "type": "create:mechanical_crafting",
+  "acceptMirrored": true,
+  "key": {
+    "G": {
+      "item": "tacz_bsb:high_gunpowder_cylinder"
+    },
+    "I": {
+      "item": "create:iron_sheet"
+    }
+  },
+  "pattern": [
+    " G  ",
+    "IGGI",
+    " G  "
+  ],
+  "result": {
+    "item": "tacz_bsb:precise_explosive_charge_40mm",
+    "count": 15
+  }
+}

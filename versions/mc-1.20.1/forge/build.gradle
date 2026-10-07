@@ -9,12 +9,13 @@ plugins {
 
 apply from: rootProject.file('gradle/load-target-properties.gradle')
 evaluationDependsOn(':cores')
-description = 'Forge 1.20.1 dependency foundation; ammunition gameplay port pending.'
+description = 'TACZ: Better Streamline Bullet for Forge 1.20.1.'
 base.archivesName = "${mod_id}-forge"
 java.toolchain.languageVersion = JavaLanguageVersion.of(java_version.toInteger())
 
 repositories {
     mavenCentral()
+    maven { url = 'https://maven.blamejared.com'; content { includeGroup 'mezz.jei' } }
     exclusiveContent {
         forRepository { maven { name = 'Modrinth'; url = 'https://api.modrinth.com/maven' } }
         filter { includeGroup 'maven.modrinth' }
@@ -43,6 +44,12 @@ legacyForge {
     }
     runs {
         client { client(); gameDirectory = file('run') }
+        clientSmoke {
+            client()
+            gameDirectory = file('build/client-smoke')
+            systemProperty 'tacz_bsb.clientSmoke', 'true'
+            programArguments.addAll '--width', '1200', '--height', '800'
+        }
         server { server(); gameDirectory = file('run'); programArgument '--nogui' }
         gameTestServer {
             type = 'gameTestServer'
@@ -65,6 +72,20 @@ def requiredMods = [
     "maven.modrinth:create:${create_forge_version_id}"
 ]
 dependencies {
+    // Optional APIs are compile-only; Endless Ammo is not a runtime prerequisite.
+    modCompileOnly("maven.modrinth:tacz-endless-ammo:${endless_ammo_version_id}") { transitive = false }
+    compileOnly 'mezz.jei:jei-1.20.1-common-api:15.20.0.106'
+    compileOnly 'mezz.jei:jei-1.20.1-forge-api:15.20.0.106'
+    if (providers.gradleProperty('jeiSmoke').isPresent()) {
+        modRuntimeOnly 'mezz.jei:jei-1.20.1-forge:15.20.0.106'
+    }
+    annotationProcessor 'org.spongepowered:mixin:0.8.5:processor'
+    annotationProcessor 'io.github.llamalad7:mixinextras-common:0.5.0'
+    compileOnly 'io.github.llamalad7:mixinextras-common:0.5.0'
+    implementation 'io.github.llamalad7:mixinextras-forge:0.5.0'
+    jarJar('io.github.llamalad7:mixinextras-forge:0.5.0') {
+        version { strictly '[0.5.0,0.6)'; prefer '0.5.0' }
+    }
     compileOnly project(':cores')
     commonJava project(path: ':mc-1.20.1:common', configuration: 'commonJava')
     commonResources project(path: ':mc-1.20.1:common', configuration: 'commonResources')
@@ -88,14 +109,21 @@ def metadataProperties = [
     create_version_range: create_version_range
 ]
 tasks.named('processResources') {
+    dependsOn tasks.named('compileJava')
+    from(layout.buildDirectory.dir('mixin')) { include 'tacz_bsb.refmap.json' }
     inputs.properties(metadataProperties)
     filesMatching('META-INF/mods.toml') { expand(metadataProperties) }
 }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
 tasks.named('jar', Jar) {
+    filesMatching('tacz_bsb.refmap.json') { duplicatesStrategy = DuplicatesStrategy.EXCLUDE }
     from(project(':cores').sourceSets.main.output)
     from(rootProject.files('LICENSE', 'TEMPLATE_LICENSE.txt'))
-    manifest.attributes('Implementation-Version': project.version)
+    manifest.attributes('Implementation-Version': project.version, 'MixinConfigs': 'tacz_bsb.mixins.json')
+}
+mixin {
+    add sourceSets.main, 'tacz_bsb.refmap.json'
+    config 'tacz_bsb.mixins.json'
 }
 idea.module { downloadSources = true; downloadJavadoc = true }
 
@@ -103,7 +131,7 @@ idea.module { downloadSources = true; downloadJavadoc = true }
 // discovers those libraries at launch; they are not rebundled into the BSB JAR.
 tasks.register('verifyDependencies') {
     group = 'verification'
-    description = 'Resolve TaCZ, Create: TaCZ and Create, and verify their embedded dependencies.'
+    description = 'Verify required mods, embedded libraries and the compile-only Endless Ammo scope.'
     inputs.files(configurations.requiredModArchives)
     inputs.property('requiredModIds', ['tacz', 'tacz_c', 'create'])
     inputs.property('requiredEmbeddedLibraries', ['simplebedrockmodel', 'commons-math3',
@@ -135,7 +163,15 @@ tasks.register('verifyDependencies') {
         if (!missingMods.empty || !missingLibraries.empty) {
             throw new GradleException("Missing Forge dependencies: mods=${missingMods}, libraries=${missingLibraries}")
         }
+        def isEndlessAmmo = { component ->
+            component.moduleVersion?.group == 'maven.modrinth' && component.moduleVersion?.name == 'tacz-endless-ammo'
+        }
+        if (!configurations.compileClasspath.incoming.resolutionResult.allComponents.any(isEndlessAmmo)
+                || configurations.runtimeClasspath.incoming.resolutionResult.allComponents.any(isEndlessAmmo)) {
+            throw new GradleException('Endless Ammo must be present only on the compile classpath.')
+        }
         task.logger.lifecycle("Forge dependencies verified: 3 mods and ${libraries.size()} embedded libraries.")
+        task.logger.lifecycle('Endless Ammo verified: compile-only, excluded from the runtime classpath.')
     }
 }
 tasks.named('check') {
@@ -146,8 +182,23 @@ tasks.named('runGameTestServer') {
     dependsOn 'verifyDependencies'
     doLast {
         def report = gameTestLog.get().asFile
-        if (!report.isFile() || !report.getText('UTF-8').contains('All 1 required tests passed')) {
-            throw new GradleException('Forge dependency GameTest did not pass; inspect gametest-run/logs/latest.log.')
+        if (!report.isFile() || !report.getText('UTF-8').contains('required tests passed')) {
+            throw new GradleException('Forge GameTests did not pass; inspect gametest-run/logs/latest.log.')
+        }
+    }
+}
+def prepareClientSmokeWorld = tasks.register('prepareClientSmokeWorld', Sync) {
+    dependsOn 'runGameTestServer'
+    from 'build/gametest-run/world'
+    into 'build/client-smoke/saves/BSBTest'
+    exclude 'session.lock'
+}
+tasks.named('runClientSmoke') {
+    dependsOn prepareClientSmokeWorld
+    def smokeLog = layout.buildDirectory.file('client-smoke/logs/latest.log')
+    doLast {
+        if (!smokeLog.get().asFile.getText('UTF-8').contains('BSB_CLIENT_SMOKE_PASSED')) {
+            throw new GradleException('Client smoke checks did not complete; inspect client-smoke/logs/latest.log.')
         }
     }
 }

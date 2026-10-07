@@ -8,7 +8,7 @@ version="${mod_version}"
 displayName="${mod_name}"
 logoFile="logo.png"
 authors="${mod_authors}"
-description='''Forge 1.20.1 development foundation for TACZ: Better Streamline Bullet. Ammunition gameplay and production features are not yet ported.'''
+description='''Improved and precise TaCZ ammunition with high-energy Create production chains, configurable damage, mixed magazines and an ammunition-tier HUD.'''
 
 [[dependencies.${mod_id}]]
 modId="forge"

@@ -4,7 +4,7 @@
 
 ![TACZ: Better Streamline Bullet](cores/src/main/resources/logo.png)
 
-Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良弹药；新增高能材料流水线生产精密弹药；TaCZ 工作台生产普通弹药。
+支持 **NeoForge 1.21.1** 与 **Forge 1.20.1** 的 Minecraft 附属模组。Create: TaCZ 原流水线生产改良弹药；新增高能材料流水线生产精密弹药；TaCZ 工作台生产普通弹药。
 
 - 模组 ID：`tacz_bsb`
 - 版本：`1.0.0-beta`（产物文件名包含加载器标识）
@@ -21,10 +21,17 @@ Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良
 | 精密 | `tacz_bsb:precise_ammo` | 紫色 | 2 / 2 | 高能材料与硬化弹头流水线 |
 
 - 每档物品通过 TaCZ 的 `AmmoId` 区分口径，默认包含全部 24 种弹药及枪包新增的有效弹药。两档强化弹药均自动使用原弹药名称、模型和原版附魔光效，加入 TaCZ 弹药创造栏，并提供 JEI 子类型识别。
-- 原 Create: TaCZ 的 24 条最终装配配方替换为改良弹，保留原配方 ID、产量、概率和工序；工作台配方保留。
-- 新增 **88 个材料及加工中物品、64 条配方**，完成全部 24 种精密弹药的生产链。38 个非加工中材料加入 **Create: TaCZ 创造栏**；50 个加工中物品及 Create: TaCZ 原有加工中物品从创造栏和搜索、JEI 搜索中隐藏，复用对应原材料模型并显示原版附魔光效。
+- 原 Create: TaCZ 的最终装配配方替换为改良弹，保留原配方 ID、产量、概率和工序；工作台配方保留。
+- 新增高能材料及硬化弹头生产链。非加工中材料加入 **Create: TaCZ 创造栏**；本模组及 Create: TaCZ 的加工中物品从创造栏和搜索、JEI 搜索中隐藏，复用对应原材料模型并显示原版附魔光效。
 - 普通、改良、精密三档可混装；分别记录弹匣顺序、弹膛和装填中的弹药，右下角显示即将击发的类型。
 - 两档的直接命中和爆炸倍率可分别配置，保留原距离衰减、爆炸范围及击退。
+
+| 目标 | 改良 / 精密成品配方 | 新增材料（成品 / 加工中） | 精密生产配方 |
+| --- | --- | --- | --- |
+| NeoForge 1.21.1 | 24 / 24 | 88（38 / 50） | 64 |
+| Forge 1.20.1 | 21 / 21 | 79（35 / 44） | 58 |
+
+Forge 的 Create: TaCZ 1.0.2 没有 .22 WMR、.500 Magnum、8mm Mauser 的生产链。全部 24 种原版弹药仍有改良、精密变种；这三种口径的配方可自行通过数据包或 KubeJS 添加。
 
 ### 新材料配方
 
@@ -47,7 +54,7 @@ Minecraft 1.21.1 / NeoForge 附属模组。Create: TaCZ 原流水线生产改良
 
 高能火药饼生产时可在工作盆过滤器中指定高能火药饼，防止材料尚未到齐时提前生产普通火药饼。
 
-原有 47 条弹药序列装配严格保留原配方顺序及材料数量。例如 .22 温彻斯特先装底火、后装高能火药；12g 按纸壳、底火、高能火药、弹托、硬化弹丸的顺序进行。共同步骤完成后，机械手按实际投入的火药接续对应产线；一旦投入不同火药便锁定分支。加工中物品独立记录 Create 的装配进度。详细物品 ID 见 [材料注册表](versions/mc-1.21.1/neoforge/src/main/java/com/sange/tacz_bsb/BsbMaterials.java)。
+弹药序列装配严格保留各目标原配方顺序及材料数量。NeoForge 的 .22 温彻斯特先装底火、后装高能火药；12g 按纸壳、底火、高能火药、弹托、硬化弹丸的顺序进行。共同步骤完成后，机械手按实际投入的火药接续对应产线；一旦投入不同火药便锁定分支。加工中物品独立记录 Create 的装配进度。详细物品 ID 见 [NeoForge 材料注册表](versions/mc-1.21.1/neoforge/src/main/java/com/sange/tacz_bsb/BsbMaterials.java) 或 [Forge 材料注册表](versions/mc-1.20.1/forge/src/main/java/com/sange/tacz_bsb/BsbMaterials.java)。
 
 ## 混装与退弹规则
 
@@ -88,7 +95,7 @@ recipeNamespaces = ["tacz_c"]
 
 启用列表支持 `*`、`tacz:*`、完整 AmmoId，允许分别留空。默认自动给所有有效弹药提供两档变种。`recipeNamespaces` 中的 Create 序列装配最终普通弹药输出会替换为改良弹。新枪包配方由整合包作者自行添加；本模组只提供默认 Create: TaCZ 的精密生产链。
 
-`tacz_bsb-server.toml`：NeoForge 同步给客户端；修改实例 `config/` 或存档 `serverconfig/` 中实际生成的文件。
+`tacz_bsb-server.toml`：由对应加载器同步给客户端；修改实例 `config/` 或存档 `serverconfig/` 中实际生成的文件。
 
 ```toml
 improvedDirectDamageMultiplier = 1.5
@@ -116,7 +123,7 @@ improvedDamageOverrides = ["my_pack:custom_round=1.8,1.6"]
 preciseDamageOverrides = ["another_pack:custom_round=2.5,3.0"]
 ```
 
-KubeJS 或数据包配方中的成品条目可直接使用以下格式，不需要改模组代码。将 `precise_ammo` 改为 `improved_ammo` 即得到改良版本：
+**NeoForge 1.21.1** 的 KubeJS 或数据包配方成品条目可使用以下格式。将 `precise_ammo` 改为 `improved_ammo` 即得到改良版本：
 
 ```json
 {
@@ -143,18 +150,29 @@ ServerEvents.recipes(event => {
 })
 ```
 
-直接获取两档弹药：
+**NeoForge 1.21.1** 直接获取两档弹药：
 
 ```mcfunction
 /give @s tacz_bsb:improved_ammo[minecraft:custom_data={AmmoId:"tacz:9mm"}] 64
 /give @s tacz_bsb:precise_ammo[minecraft:custom_data={AmmoId:"tacz:9mm"}] 64
 ```
 
+**Forge 1.20.1** 的 Create 配方输出使用 `item` 与 `nbt`：
+
+```json
+{ "item": "tacz_bsb:precise_ammo", "count": 16, "nbt": { "AmmoId": "my_pack:custom_round" } }
+```
+
+```mcfunction
+/give @s tacz_bsb:improved_ammo{AmmoId:"tacz:9mm"} 64
+/give @s tacz_bsb:precise_ammo{AmmoId:"tacz:9mm"} 64
+```
+
 两档为独立注册物品，同一档不同口径是带 AmmoId 的物品变种。配置控制展示和自动替换范围，不清除已存在的物品；固定精密配方也可以由数据包或 KubeJS 修改、移除。
 
 ## 必选依赖
 
-以上弹药功能目前由 **NeoForge 1.21.1** 实现。**Forge 1.20.1** 已建立项目结构、加载器入口、依赖及依赖游戏测试，尚未移植弹药功能。
+以上弹药功能已在两个目标分别实现；各目标使用自己的前置接口和数据格式。
 
 ### NeoForge 1.21.1
 
@@ -168,7 +186,7 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 
 本模组发布 JAR 不内嵌这三个前置模组，游戏客户端和服务端均须安装它们及本模组。Mixin 按表中版本验证；上游调整装填或射击方法后可能需要适配。
 
-### Forge 1.20.1 开发目标
+### Forge 1.20.1
 
 | 模组 | 锁定版本 | 构建仓库 |
 | --- | --- | --- |
@@ -177,6 +195,8 @@ NeoForge：21.1.248；JDK：21。构建自动下载模组及其发布包内嵌�
 | [Create](https://modrinth.com/mod/create/version/8amzvn9x) | 6.0.8 | Modrinth Maven |
 
 Forge：47.4.10。游戏运行和目标编译使用 JDK 17；Gradle 启动及 `cores` 编译使用 JDK 21。TaCZ 和 Create 的完整发行包内嵌 SimpleBedrockModel、LuaJ、BCEL、Commons Math、MixinExtras、Registrate、Flywheel 和 Ponder。所有前置包自动下载，不打包进 BSB 产物；无需手动放入 `libs`，也不需要 Forge Config API Port。
+
+[TaCZ Endless Ammo 2.0](https://modrinth.com/mod/tacz-endless-ammo/version/dXzfdyUh) 在 Forge 目标中仅作为**编译依赖**。它不参与开发运行、不进入发行包，也不是本模组的运行前置；暂未实现其专用适配。
 
 ## 开发约定
 
@@ -189,8 +209,8 @@ cores/                          纯 Java 弹药状态逻辑及共用 Logo
 versions/
   mc-1.20.1/
     gradle.properties           Minecraft 1.20.1 与 Java 17
-    common/                     后续 1.20.1 不依赖加载器的代码及资源
-    forge/                      Forge 基础入口、依赖及依赖测试
+    common/                     1.20.1 不依赖加载器的代码、配方及资源
+    forge/                      Forge 实现、元数据及游戏测试
   mc-1.21.1/
     gradle.properties           Minecraft、映射及 Java 版本
     common/                     1.21.1 不依赖加载器的代码及游戏资源
@@ -198,9 +218,9 @@ versions/
       gradle.properties         固定的加载器与前置模组版本
 ```
 
-根目录的 `build`、`assemble`、`check`、`clean` 汇总所有目标；`:mc-1.21.1:build` 构建该版本，`:mc-1.21.1:neoforge:build` 构建其 NeoForge 发行包并检查所用共用模块。各模块的构建产物及开发存档彼此独立。`cores` 与 `common` 的 JAR 为开发库，发行时使用已合并必要内容的 NeoForge JAR。
+根目录的 `build`、`assemble`、`check`、`clean` 汇总所有目标；`:mc-1.21.1:build` 构建该版本，`:mc-1.21.1:neoforge:build` 构建其 NeoForge 发行包并检查所用共用模块。各模块的构建产物及开发存档彼此独立。`cores` 与 `common` 的 JAR 为开发库，发行时使用对应加载器已合并必要内容的 JAR。
 
-参考 TravelingMerchantWagon，Gradle 自动发现 `versions/mc-*` 中带有构建脚本的 `common`、`neoforge`、`fabric`、`forge` 模块。1.20.1 Forge 基础项目与 1.21.1 NeoForge 实现分别拥有自己的 common 模块，依赖特定加载器的代码留在各自目标中。4 条使用 NeoForge 流体格式的配方也保留在 NeoForge 资源目录。
+参考 TravelingMerchantWagon，Gradle 自动发现 `versions/mc-*` 中带有构建脚本的 `common`、`neoforge`、`fabric`、`forge` 模块。Forge 与 NeoForge 实现分别拥有自己的 common 模块，依赖特定加载器的代码留在各自目标中。4 条使用 NeoForge 流体格式的配方也保留在 NeoForge 资源目录。
 
 运行时指定完整加载器任务。若希望本地使用简短任务名，可创建不提交的 `gradle-local.properties`：
 
@@ -218,15 +238,17 @@ runTarget=:mc-1.21.1:neoforge
 .\gradlew.bat build
 .\gradlew.bat :mc-1.20.1:forge:build
 .\gradlew.bat :mc-1.20.1:forge:runGameTestServer
+.\gradlew.bat :mc-1.20.1:forge:runClientSmoke -PjeiSmoke
 .\gradlew.bat :mc-1.21.1:neoforge:runGameTestServer
 .\gradlew.bat :mc-1.21.1:neoforge:runClientSmoke
 ```
 
 Linux / macOS 对应使用 `./gradlew`。首次执行需要联网。正式产物：`versions/mc-1.21.1/neoforge/build/libs/tacz_bsb-neoforge-1.0.0-beta.jar`。
 
-Forge 基础项目产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。它是开发骨架，尚不能使用本模组的弹药功能。`verifyDependencies` 检查三个前置包及其九个内嵌库；`runGameTestServer` 在 `versions/mc-1.20.1/forge/build/gametest-run` 检查实际模组加载、物品注册、TaCZ 枪包加载与 Create: TaCZ 配方解析。日常开发使用 `:mc-1.20.1:forge:runClient` / `:mc-1.20.1:forge:runServer`，工作目录为 `versions/mc-1.20.1/forge/run`。测试代码及结构文件不进入产物。
+Forge 发行产物：`versions/mc-1.20.1/forge/build/libs/tacz_bsb-forge-1.0.0-beta.jar`。`verifyDependencies` 检查三个前置包、九个内嵌库及 Endless Ammo 的仅编译依赖范围。15 项服务端游戏测试覆盖依赖加载、完整生产链、混装与换退弹、持久化、损坏 NBT 拒绝、伤害倍率、RPG、普通及全类型创造弹药盒。`runClientSmoke -PjeiSmoke` 另检查实际 JEI 搜索与客户端渲染。测试代码及结构文件不进入产物。
 
-- `build` 包含 JUnit 单元测试，报告分别在 `cores/build/reports/tests/test/index.html` 和 `versions/mc-1.21.1/common/build/reports/tests/test/index.html`。
+- `build` 包含 JUnit 单元测试，报告位于 `cores/build/reports/tests/test/index.html` 及各版本的 `common/build/reports/tests/test/index.html`。
+- 两个加载器子项目提供同名测试任务。Forge 的测试世界与截图位于 `versions/mc-1.20.1/forge/build/`；日常开发任务 `runClient` / `runServer` 使用 `versions/mc-1.20.1/forge/run`。
 - `runGameTestServer` 在 `versions/mc-1.21.1/neoforge/build/gametest-run` 运行真实前置模组和集成测试，完成后退出。
 - `runClientSmoke` 先运行服务端测试并复制隔离测试世界，再启动客户端，检查 24 种口径的三档弹药渲染、创造栏、状态同步和 HUD，保存截图后自动退出。需要图形环境；截图位于 `versions/mc-1.21.1/neoforge/build/client-smoke/screenshots/`。
 - 日常开发使用 `:mc-1.21.1:neoforge:runClient` / `:mc-1.21.1:neoforge:runServer`。游戏测试独立存放于 `src/gameTest`，正式 JAR 排除其代码和资源。

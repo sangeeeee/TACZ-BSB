@@ -1,0 +1,65 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_45acp"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "item": "tacz_bsb:precise_ammo",
+      "nbt": {
+        "AmmoId": "tacz:45acp"
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        },
+        {
+          "item": "tacz_bsb:hardened_bullet"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_45acp"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_precise_45acp"
+  }
+}

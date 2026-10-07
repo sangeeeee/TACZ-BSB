@@ -1,0 +1,81 @@
+{
+  "type": "create:sequenced_assembly",
+  "ingredient": {
+    "item": "tacz_bsb:high_casefull_338"
+  },
+  "loops": 1,
+  "results": [
+    {
+      "item": "tacz_bsb:precise_ammo",
+      "nbt": {
+        "AmmoId": "tacz:338"
+      }
+    }
+  ],
+  "sequence": [
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        }
+      ]
+    },
+    {
+      "type": "create:deploying",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        },
+        {
+          "item": "tacz_bsb:hardened_large_bullet"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        }
+      ]
+    },
+    {
+      "type": "create:pressing",
+      "ingredients": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        }
+      ],
+      "results": [
+        {
+          "item": "tacz_bsb:unfinished_precise_338"
+        }
+      ]
+    }
+  ],
+  "transitionalItem": {
+    "item": "tacz_bsb:unfinished_precise_338"
+  }
+}

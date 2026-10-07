@@ -1,0 +1,29 @@
+{
+  "type": "create:mixing",
+  "ingredients": [
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "minecraft:gunpowder"
+    },
+    {
+      "item": "minecraft:charcoal"
+    },
+    {
+      "amount": 250,
+      "fluid": "minecraft:water",
+      "nbt": {}
+    },
+    {
+      "item": "create:rose_quartz"
+    }
+  ],
+  "results": [
+    {
+      "item": "tacz_bsb:high_gunpowder_cake",
+      "count": 10
+    }
+  ],
+  "heatRequirement": "heated"
+}

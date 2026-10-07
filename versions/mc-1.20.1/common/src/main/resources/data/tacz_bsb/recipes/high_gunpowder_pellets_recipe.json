@@ -1,0 +1,22 @@
+{
+  "type": "minecraft:crafting_shapeless",
+  "category": "misc",
+  "ingredients": [
+    {
+      "item": "tacz_bsb:high_gunpowder_grains"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_grains"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_grains"
+    },
+    {
+      "item": "tacz_bsb:high_gunpowder_grains"
+    }
+  ],
+  "result": {
+    "item": "tacz_bsb:high_gunpowder_pellets",
+    "count": 1
+  }
+}

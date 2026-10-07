@@ -1,0 +1,23 @@
+{
+  "required": true,
+  "minVersion": "0.8",
+  "refmap": "tacz_bsb.refmap.json",
+  "package": "com.sange.tacz_bsb.mixin",
+  "compatibilityLevel": "JAVA_17",
+  "mixins": [
+    "GunInventoryMixin",
+    "GunScriptMixin",
+    "GunLifecycleMixin",
+    "ShootChamberMixin",
+    "BulletAccessor",
+    "AmmoBoxMixin",
+    "RecipeManagerMixin"
+  ],
+  "client": [
+    "client.AmmoRendererMixin",
+    "client.AmmoModelMixin"
+  ],
+  "injectors": {
+    "defaultRequire": 1
+  }
+}

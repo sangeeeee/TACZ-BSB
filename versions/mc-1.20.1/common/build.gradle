@@ -14,7 +14,14 @@ legacyForge {
         disableRecompilation = false
     }
 }
-dependencies { api project(':cores') }
+repositories { mavenCentral() }
+dependencies {
+    api project(':cores')
+    testImplementation platform('org.junit:junit-bom:5.11.4')
+    testImplementation 'org.junit.jupiter:junit-jupiter'
+    testImplementation 'com.google.code.gson:gson:2.10.1'
+    testRuntimeOnly 'org.junit.platform:junit-platform-launcher'
+}
 configurations {
     commonJava { canBeConsumed = true; canBeResolved = false }
     commonResources { canBeConsumed = true; canBeResolved = false }
@@ -25,3 +32,4 @@ artifacts {
 }
 sourceSets.main.resources { exclude '**/*.bbmodel', '**/.cache/**', '**/.gitkeep' }
 tasks.withType(JavaCompile).configureEach { options.encoding = 'UTF-8' }
+tasks.named('test', Test) { useJUnitPlatform() }
